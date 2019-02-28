@@ -1,0 +1,57 @@
+﻿@model IEnumerable<DapperRepository.Core.Domain.Customers.CustomerDtoModel>
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Data List</h2>
+<div class="content-header clearfix">
+    <h5 class="pull-left">
+        <a href="@Url.Action("Create")" class="btn btn-primary">Add</a>
+    </h5>
+</div>
+<table class="table table-bordered">
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Active</th>
+        <th>CreationTime</th>
+        <th>Action</th>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>@item.Id</td>
+            <td>@item.Username</td>
+            <td>@item.Email</td>
+            <td>@item.CustomerRole.Name</td>
+            <td>@item.Active</td>
+            <td>@item.CreationTime</td>
+            <td>
+                <a class="btn btn-default" href="@Url.Action("Edit", new {id = item.Id})">Edit</a> 
+                <a class="btn btn-default del" href="javascript:void(0)" data-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+        }
+    </table>
+    <script>
+        $(function () {
+            $('a.del').click(function () {
+                if (confirm("Are you sure to delete the data?")) {
+                    $.ajax({
+                        url: "@Url.Action("Delete")",
+                        type: "POST",
+                        data: { id: $(this).data("id") }
+                    }).done(function (data) {
+                        if (data.status) {
+                            location.reload();
+                        } else {
+                            console.log(data.msg);
+                        }
+                    }).error(function (xhr) {
+                        console.log(xhr.message);
+                    });
+                }
+            });
+        })
+    </script>
