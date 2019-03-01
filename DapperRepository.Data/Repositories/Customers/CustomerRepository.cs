@@ -36,42 +36,48 @@ namespace DapperRepository.Data.Repositories.Customers
             string sql = sb.ToString();
             IDbSession session = DbSession;
 
-            using (IDbConnection conn = session.Connection)
+            try
             {
-                var customers = conn.Query<CustomerDtoModel, CustomerRole, CustomerDtoModel>(sql, (c, cr) =>
-                {
-                    c.CustomerRole = cr;
-                    return c;
-                }, new { id }).FirstOrDefault();
+                var customers = session.Connection.Query<CustomerDtoModel, CustomerRole, CustomerDtoModel>(sql, (c, cr) =>
+                    {
+                        c.CustomerRole = cr;
+                        return c;
+                    }, new { id }).FirstOrDefault();
 
                 return customers;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                session.Dispose();
             }
         }
 
         public IEnumerable<CustomerDtoModel> GetAllCustomers()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM Customer c ");
+            sb.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id AS [CrId],cr.Name,cr.SystemName FROM Customer c ");
             sb.Append("JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
-            sb.Append("JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id");
+            sb.Append("JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id ORDER BY c.Id DESC");
 
             string sql = sb.ToString();
             IDbSession session = DbSession;
+
             try
             {
-                using (IDbConnection conn = session.Connection)
+                session.BeginTrans();
+
+                var customers = session.Connection.Query<CustomerDtoModel, CustomerRole, CustomerDtoModel>(sql, (c, cr) =>
                 {
-                    session.BeginTrans();
+                    c.CustomerRole = cr;
+                    return c;
+                }, transaction: session.Transaction, splitOn: "Id,CustomerId,CustomerRoleId,CrId");
+                session.Commit();
 
-                    var customers = conn.Query<CustomerDtoModel, CustomerRole, CustomerDtoModel>(sql, (c, cr) =>
-                    {
-                        c.CustomerRole = cr;
-                        return c;
-                    }, transaction: session.Transaction);
-                    session.Commit();
-
-                    return customers;
-                }
+                return customers;
             }
             catch (Exception)
             {
@@ -123,37 +129,5 @@ namespace DapperRepository.Data.Repositories.Customers
                 @CustomerId = customer.Id
             }, commandType: CommandType.Text);
         }
-
-        #region Customer Roles
-        /*
-        public IEnumerable<CustomerRole> GetCustomerRoles()
-        {
-            const string sql = "SELECT Id,Name,SystemName FROM CustomerRole";
-
-            IDbSession session = DbSession;
-
-            try
-            {
-                using (IDbConnection conn = session.Connection)
-                {
-                    session.BeginTrans();
-
-                    IEnumerable<CustomerRole> result = conn.Query<CustomerRole>(sql, transaction: session.Transaction);
-                    session.Commit();
-
-                    return result;
-                }
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-            finally
-            {
-                session.Dispose();
-            }
-        }
-         */
-        #endregion
     }
 }

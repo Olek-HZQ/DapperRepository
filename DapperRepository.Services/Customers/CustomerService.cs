@@ -14,8 +14,6 @@ namespace DapperRepository.Services.Customers
             _repository = repository;
         }
 
-        #region Custoemr
-
         public Customer GetCustomerById(int customerId)
         {
             if (customerId == 0)
@@ -57,16 +55,5 @@ namespace DapperRepository.Services.Customers
         {
             return _repository.Delete(customer);
         }
-
-        #endregion
-
-        #region Customer Roles
-        /*
-        public IEnumerable<CustomerRole> GetCustomerRoles()
-        {
-            return _repository.GetCustomerRoles();
-        }
-        */
-        #endregion
     }
 }
