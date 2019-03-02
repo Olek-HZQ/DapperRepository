@@ -59,7 +59,7 @@ namespace DapperRepository.Data.Repositories.Customers
         public IEnumerable<CustomerDtoModel> GetAllCustomers()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id AS [CrId],cr.Name,cr.SystemName FROM Customer c ");
+            sb.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM Customer c ");
             sb.Append("JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
             sb.Append("JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id ORDER BY c.Id DESC");
 
@@ -74,8 +74,44 @@ namespace DapperRepository.Data.Repositories.Customers
                 {
                     c.CustomerRole = cr;
                     return c;
-                }, transaction: session.Transaction, splitOn: "Id,CustomerId,CustomerRoleId,CrId");
+                }, transaction: session.Transaction);
                 session.Commit();
+
+                return customers;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                session.Dispose();
+            }
+        }
+
+        public IEnumerable<CustomerDtoModel> GetPagedCustomers(out int totalCount, int pageIndex = 0, int pageSize = int.MaxValue)
+        {
+            totalCount = 0;
+            IDbSession session = DbSession;
+
+            var args = new DynamicParameters();
+            args.Add("@PageIndex", pageIndex, DbType.Int32);
+            args.Add("@PageSize", pageSize, DbType.Int32);
+            args.Add("@TotalRecords", totalCount, DbType.Int32, ParameterDirection.Output);
+
+            try
+            {
+                session.BeginTrans();
+
+                var customers = session.Connection.Query<CustomerDtoModel, CustomerRole, CustomerDtoModel>("[dbo].[DRD_Customer_GetAllCustomers]", (c, cr) =>
+                {
+                    c.CustomerRole = cr;
+                    return c;
+                }, args, session.Transaction, commandType: CommandType.StoredProcedure);
+
+                session.Commit();
+
+                totalCount = args.Get<int>("TotalRecords");
 
                 return customers;
             }

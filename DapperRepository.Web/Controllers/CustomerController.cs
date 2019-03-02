@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using DapperRepository.Core.Domain.Customers;
@@ -21,8 +20,25 @@ namespace DapperRepository.Web.Controllers
 
         public ActionResult Index()
         {
-            IEnumerable<CustomerDtoModel> customers = _customerService.GetAllCustomers();
-            return View(customers);
+            return View();
+        }
+
+        public ActionResult CustomerList(int pageIndex, int pageSize)
+        {
+            int total;
+
+            var customers = _customerService.GetPagedCustomers(out total, pageIndex - 1, pageSize)
+                .Select(x => new
+                        {
+                            x.Id,
+                            x.Username,
+                            x.Email,
+                            RoleName = x.CustomerRole.Name,
+                            x.Active,
+                            CreationTime = x.CreationTime.ToString("yyyy-MM-dd")
+                        });
+
+            return Json(new { rows = customers, total }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult Create()

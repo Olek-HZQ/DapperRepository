@@ -9,49 +9,86 @@
         <a href="@Url.Action("Create")" class="btn btn-primary">Add</a>
     </h5>
 </div>
-<table class="table table-bordered">
-    <tr>
-        <th>Id</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Active</th>
-        <th>CreationTime</th>
-        <th>Action</th>
-        @foreach (var item in Model)
-        {
-        <tr>
-            <td>@item.Id</td>
-            <td>@item.Username</td>
-            <td>@item.Email</td>
-            <td>@item.CustomerRole.Name</td>
-            <td>@item.Active</td>
-            <td>@item.CreationTime</td>
-            <td>
-                <a class="btn btn-default" href="@Url.Action("Edit", new {id = item.Id})">Edit</a> 
-                <a class="btn btn-default del" href="javascript:void(0)" data-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-        }
-    </table>
-    <script>
-        $(function () {
-            $('a.del').click(function () {
-                if (confirm("Are you sure to delete the data?")) {
-                    $.ajax({
-                        url: "@Url.Action("Delete")",
-                        type: "POST",
-                        data: { id: $(this).data("id") }
-                    }).done(function (data) {
-                        if (data.status) {
-                            location.reload();
-                        } else {
-                            console.log(data.msg);
-                        }
-                    }).error(function (xhr) {
-                        console.log(xhr.message);
-                    });
+<table id="customer-table" class="table table-bordered"></table>
+<script>
+    $(function () {
+
+        $('#customer-table').bootstrapTable({
+            url: '@Url.Action("CustomerList")',
+            method: 'GET',
+            cache: false,
+            pagination: true,
+            queryParams: function (e) {
+                var param = {
+                    pageIndex: (e.offset / e.limit) + 1,
+                    pageSize: e.limit
+                };
+                return param;
+            },
+            sidePagination: "server",
+            pageNumber: 1,
+            pageSize: 10,
+            uniqueId: "Id",
+            columns: [
+                {
+                    field: 'Id',
+                    title: 'ID'
+                }, {
+                    field: 'Username',
+                    title: 'Username'
+                }, {
+                    field: 'Email',
+                    title: 'Email'
+                }, {
+                    field: "RoleName",
+                    title: "Role"
+                }, {
+                    field: 'Active',
+                    title: 'Active'
+                }, {
+                    field: "CreationTime",
+                    title: "CreationTime"
+                },
+                {
+                    field: "Action",
+                    title: "Action",
+                    align: "center",
+                    formatter: action,
+                    edit: true
                 }
+            ]
+        });
+
+    });
+
+    function action(value, row) {
+        var str = '';
+        str += '<a class="btn btn-default btn-sm href="javascript:void(0);" onclick="editCustomer(' + row.Id + ')" title="Edit">Edit</a>  ';
+        str += '  <a class="btn btn-default btn-sm href="javascript:void(0);" onclick="deleteCustomer(' + row.Id + ')" title="Delete">Delete</a>';
+
+        return str;
+    }
+
+    function editCustomer(id) {
+        location.href = '/Customer/Edit/' + id;
+    }
+
+    function deleteCustomer(id) {
+        if (confirm("Are you sure to delete the data?")) {
+            $.ajax({
+                url: "@Url.Action("Delete")",
+                type: "POST",
+                data: { id: id }
+            }).done(function (data) {
+                if (data.status) {
+                    location.reload();
+                } else {
+                    console.log(data.msg);
+                }
+            }).error(function (xhr) {
+                console.log(xhr.message);
             });
-        })
-    </script>
+        }
+    }
+
+</script>

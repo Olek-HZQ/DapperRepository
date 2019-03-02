@@ -35,6 +35,11 @@ namespace DapperRepository.Services.Customers
             return _repository.GetAllCustomers();
         }
 
+        public IEnumerable<CustomerDtoModel> GetPagedCustomers(out int totalCount, int pageIndex = 0, int pageSize = int.MaxValue)
+        {
+            return _repository.GetPagedCustomers(out totalCount, pageIndex, pageSize);
+        }
+
         public int InsertCustomer(Customer customer, int roleId)
         {
             if (customer == null)
