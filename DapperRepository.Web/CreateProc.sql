@@ -1,4 +1,4 @@
-USE [DapperSampleDb];
+USE [DapperRepositoryDb];
 GO
 
 /****** Object:  StoredProcedure [dbo].[DRD_Customer_GetAllCustomers]    Script Date: 3/3/2019 1:23:45 PM ******/
@@ -18,7 +18,7 @@ AS
     BEGIN
         SET NOCOUNT ON;
 
-		-- paging
+	-- paging
         DECLARE @PageLowerBound INT;
         DECLARE @PageUpperBound INT;
         DECLARE @RowsToReturn INT;
@@ -40,10 +40,10 @@ AS
                 FROM    dbo.Customer
                 ORDER BY Id DESC;
 
-		-- total records
+	-- total records
         SET @TotalRecords = @@ROWCOUNT;
 
-		-- return customers
+	-- return customers
         SELECT TOP ( @RowsToReturn )
                 c.Id ,
                 c.Username ,
