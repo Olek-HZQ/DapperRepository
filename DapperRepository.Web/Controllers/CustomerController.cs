@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using DapperRepository.Core.Domain.Customers;
@@ -20,6 +21,28 @@ namespace DapperRepository.Web.Controllers
 
         public ActionResult Index()
         {
+            /*
+             * 批量插入数据，用于测试
+            List<Customer> customers = new List<Customer>();
+
+            DateTime now = DateTime.Now;
+
+            for (int i = 0; i < 1000000; i++)
+            {
+                customers.Add(new Customer
+                {
+                    Username = "olek",
+                    Email = "875755898@qq.com",
+                    Active = true,
+                    CreationTime = now.AddSeconds(i)
+                });
+            }
+
+            long time;
+            ViewBag.ExecuteResult = _customerService.InsertList(out time, customers);
+            ViewBag.ExecuteTime = time;
+             */
+
             return View();
         }
 

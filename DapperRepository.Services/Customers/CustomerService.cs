@@ -30,14 +30,19 @@ namespace DapperRepository.Services.Customers
             return _repository.GetCustomerBy(id);
         }
 
+        public int InsertList(out long time, List<Customer> customers)
+        {
+            return _repository.InsertList(out time, customers);
+        }
+
         public IEnumerable<CustomerDtoModel> GetAllCustomers()
         {
             return _repository.GetAllCustomers();
         }
 
-        public IEnumerable<CustomerDtoModel> GetPagedCustomers(out int totalCount, int pageIndex = 0, int pageSize = int.MaxValue)
+        public IEnumerable<CustomerDtoModel> GetPagedCustomers(out int totalCount, int pageIndex = 0, int pageSize = int.MaxValue, bool useStoredProcedure = false)
         {
-            return _repository.GetPagedCustomers(out totalCount, pageIndex, pageSize);
+            return _repository.GetPagedCustomers(out totalCount, pageIndex, pageSize, useStoredProcedure);
         }
 
         public int InsertCustomer(Customer customer, int roleId)
