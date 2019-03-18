@@ -2,26 +2,16 @@
 using System.Linq;
 using System.Data;
 using System.Collections.Generic;
+using System.Text;
 using Dapper;
 using DapperExtensions;
 using DapperRepository.Core;
 using DapperRepository.Core.Data;
-using DapperRepository.Core.Domain;
 
 namespace DapperRepository.Data
 {
-    public abstract class RepositoryBase<T> where T : BaseEntity
+    public abstract class RepositoryBase<T> : RepositoryDataTypeBase where T : BaseEntity
     {
-        protected virtual IDbSession DbSession
-        {
-            get { return SessionFactory.CreateSession(DataType); }
-        }
-
-        /// <summary>
-        /// 数据库类型（MSSQL,MYSQL...）
-        /// </summary>
-        protected abstract DatabaseType DataType { get; }
-
         /// <summary>
         /// 根据主键获取一条数据
         /// </summary>
@@ -188,44 +178,22 @@ namespace DapperRepository.Data
         }
 
         /// <summary>
-        /// 删除数据
+        /// 删除数据（默认以主键删除）
         /// </summary>
-        /// <param name="entity">要删除的实体对象</param>
+        /// <param name="entityId">要删除的实体对象Id</param>
+        /// <param name="predicate">where的条件（为空则用主键删除，不为空则以条件为准）</param>
+        /// <param name="param">语句参数</param>
         /// <param name="commandTimeout">执行超时时间</param>
         /// <param name="useTransaction">是否开启事务</param>
         /// <returns>执行结果（true or false）</returns>
-        public virtual bool Delete(T entity, int? commandTimeout = null, bool useTransaction = false)
+        public virtual bool Delete(int entityId, string predicate = "", object param = null, int? commandTimeout = null, bool useTransaction = false)
         {
-            IDbSession session = DbSession;
+            StringBuilder builder = new StringBuilder(string.Format("DELETE FROM {0}", TableName));
+            builder.Append(" WHERE ");
 
-            try
-            {
-                if (useTransaction)
-                {
-                    session.BeginTrans();
+            builder.Append(string.IsNullOrEmpty(predicate) ? string.Format("Id = {0};", entityId) : predicate);
 
-                    bool result = session.Connection.Delete(entity, session.Transaction, commandTimeout);
-                    session.Commit();
-                    return result;
-                }
-                else
-                {
-                    return session.Connection.Delete(entity, null, commandTimeout);
-                }
-            }
-            catch (Exception)
-            {
-                if (useTransaction)
-                {
-                    session.Rollback();
-                }
-
-                return false;
-            }
-            finally
-            {
-                session.Dispose(); // 释放资源
-            }
+            return Execute(builder.ToString(), param, null, CommandType.Text, useTransaction) > 0;
         }
 
         /// <summary>

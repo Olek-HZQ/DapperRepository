@@ -43,12 +43,6 @@ namespace DapperRepository.Data
 
         public void Dispose()
         {
-            if (_transaction != null)
-            {
-                _transaction.Dispose();
-                _transaction = null;
-            }
-
             if (_connection != null)
             {
                 if (_connection.State == ConnectionState.Open)
@@ -56,6 +50,12 @@ namespace DapperRepository.Data
 
                 _connection.Dispose();
                 _connection = null;
+            }
+
+            if (_transaction != null)
+            {
+                _transaction.Dispose();
+                _transaction = null;
             }
 
             GC.SuppressFinalize(this);

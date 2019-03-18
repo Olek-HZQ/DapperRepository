@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using DapperRepository.Core.Domain.Customers;
-using DapperRepository.Services.Customers;
+using DapperRepository.Services.BaseInterfaces;
 using DapperRepository.Web.Models.Customers;
 
 namespace DapperRepository.Web.Controllers
@@ -22,12 +22,12 @@ namespace DapperRepository.Web.Controllers
         public ActionResult Index()
         {
             /*
-             * 批量插入数据，用于测试
+            // 批量插入数据，用于测试
             List<Customer> customers = new List<Customer>();
 
             DateTime now = DateTime.Now;
 
-            for (int i = 0; i < 1000000; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 customers.Add(new Customer
                 {
@@ -41,7 +41,7 @@ namespace DapperRepository.Web.Controllers
             long time;
             ViewBag.ExecuteResult = _customerService.InsertList(out time, customers);
             ViewBag.ExecuteTime = time;
-             */
+            */
 
             return View();
         }

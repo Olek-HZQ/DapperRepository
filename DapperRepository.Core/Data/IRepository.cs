@@ -63,13 +63,16 @@ namespace DapperRepository.Core.Data
         bool Update(T entity, int? commandTimeout = null, bool useTransaction = false);
 
         /// <summary>
-        /// 删除数据
+        /// 删除数据（默认以主键删除）
         /// </summary>
-        /// <param name="entity">要删除的实体对象</param>
+        /// <param name="entityId">要删除的实体对象Id</param>
+        /// <param name="predicate">where的条件（为空则用主键删除，不为空则以条件为准）</param>
+        /// <param name="param">语句参数</param>
         /// <param name="commandTimeout">执行超时时间</param>
         /// <param name="useTransaction">是否开启事务</param>
         /// <returns>执行结果（true or false）</returns>
-        bool Delete(T entity, int? commandTimeout = null, bool useTransaction = false);
+        bool Delete(int entityId, string predicate = "", object param = null, int? commandTimeout = null,
+            bool useTransaction = false);
 
         /// <summary>
         /// 执行对象sql语句（一般需要事务处理）
