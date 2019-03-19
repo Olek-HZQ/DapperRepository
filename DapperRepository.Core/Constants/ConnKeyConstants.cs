@@ -7,6 +7,8 @@
     {
         #region MSSQL
 
+        public const string Mssql = "Mssql"; // 标识当前使用数据库为mssql
+
         public const string MssqlMasterKey = "MssqlMasterKey";
 
         // 可根据具体项目定义多个
@@ -16,25 +18,18 @@
 
         #region MYSQL
 
+        public const string Mysql = "Mysql";
+
         public const string MysqlMasterKey = "MysqlMasterKey";
 
         #endregion
 
         #region ORACLE
 
+        public const string Oracle = "Oracle";
+
         public const string OracleMasterKey = "OracleMasterKey";
 
         #endregion
-
-        /// <summary>
-        /// 当前启用的数据库类型
-        /// </summary>
-        public const string CurrentActivedDbTypeKey = "CurrentActivedDbTypeKey";
-
-        public const string Mssql = "Mssql";
-
-        public const string Mysql = "Mysql";
-
-        public const string Oracle = "Oracle";
     }
 }

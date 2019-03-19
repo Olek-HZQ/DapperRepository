@@ -18,14 +18,15 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
             if (id == 0)
                 return null;
 
-            const string sql = "SELECT [Id],[Username],[Email],[Active],[CreationTime] FROM Customer WHERE Id = @id";
+            string sql = string.Format("SELECT [Id],[Username],[Email],[Active],[CreationTime] FROM [dbo].[{0}] WHERE [Id] = @id", TableName);
+
             return GetById(sql, new { id }, commandType: CommandType.Text);
         }
 
         public CustomerDtoModel GetCustomerBy(int id)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM Customer c ");
+            sb.AppendFormat("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM [dbo].[{0}] c ", TableName);
             sb.Append("JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
             sb.Append("JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id WHERE c.Id = @id");
 
@@ -52,29 +53,6 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
             }
         }
 
-        /* 
-        public int InsertList(out long time, List<Customer> customers, int roleid)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-
-            StringBuilder builder = new StringBuilder(50);
-            builder.Append("DECLARE @insertid INT;");
-            builder.Append("INSERT INTO dbo.Customer( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );");
-            builder.Append("SET @insertid = SCOPE_IDENTITY();");
-            builder.Append("INSERT INTO [dbo].[Customer_CustomerRole_Mapping]( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleid );");
-
-            stopwatch.Start();
-
-            int result = Execute(builder.ToString(), new { customers, roleid }); // If use this way, it couldn't insert the data, i don't know why.(if you know the way to solve this, please tell me, thanks!)
-
-            stopwatch.Stop();
-
-            time = stopwatch.ElapsedMilliseconds;
-
-            return result;
-        }
-         */
-
         public int InsertList(out long time, List<Customer> customers)
         {
             // 用于获取插入运行时间
@@ -83,7 +61,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
             StringBuilder builder = new StringBuilder(50);
             builder.Append("DECLARE @insertid INT;DECLARE @roleid INT;");
             builder.Append("SET @roleid = (SELECT TOP(1) Id FROM dbo.CustomerRole WHERE SystemName = 'Guest');");
-            builder.Append("INSERT INTO dbo.Customer( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );");
+            builder.AppendFormat("INSERT INTO [dbo].[{0}]( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );", TableName);
             builder.Append("SET @insertid = SCOPE_IDENTITY();");
             builder.Append("INSERT INTO [dbo].[Customer_CustomerRole_Mapping]( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleid );");
 
@@ -101,7 +79,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
         public IEnumerable<CustomerDtoModel> GetAllCustomers()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM Customer c ");
+            sb.AppendFormat("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM [dbo].[{0}] c ", TableName);
             sb.Append("JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
             sb.Append("JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id ORDER BY c.Id DESC");
 
@@ -153,7 +131,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
                     {
                         c.CustomerRole = cr;
                         return c;
-                    }, parameters, session.Transaction, commandType: CommandType.StoredProcedure, splitOn: "Id,CustomerId,CustomerRoleId,CrId");
+                    }, parameters, session.Transaction, commandType: CommandType.StoredProcedure);
 
                     totalCount = parameters.Get<int>("TotalRecords");
                 }
@@ -165,11 +143,11 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
                     builder.Append("SET @PageLowerBound = @PageSize * @PageIndex;SET @PageUpperBound = @PageLowerBound + @PageSize + 1;");
 
                     builder.Append("CREATE TABLE #PageIndex( [IndexId] INT IDENTITY(1, 1) NOT NULL ,[CustomerId] INT NOT NULL);"); // 创建临时表 "PageIndex"
-                    builder.Append("INSERT INTO #PageIndex( CustomerId ) SELECT Id FROM dbo.Customer ORDER BY Id DESC;");
+                    builder.AppendFormat("INSERT INTO #PageIndex( CustomerId ) SELECT Id FROM dbo.{0} ORDER BY Id DESC;", TableName);
 
                     builder.Append("SELECT @@ROWCOUNT;"); // 总数据量
                     builder.Append("SELECT TOP ( @PageSize ) c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM #PageIndex [pi] ");
-                    builder.Append("INNER JOIN dbo.Customer c ON c.Id = [pi].CustomerId ");
+                    builder.AppendFormat("INNER JOIN [dbo].[{0}] c ON c.Id = [pi].CustomerId ", TableName);
                     builder.Append("INNER JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
                     builder.Append("INNER JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id ");
                     builder.Append("WHERE pi.IndexId > @PageLowerBound AND pi.IndexId < @PageUpperBound ORDER BY pi.IndexId;");
@@ -206,7 +184,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
         {
             StringBuilder builder = new StringBuilder(50);
             builder.Append("DECLARE @insertid INT;");
-            builder.Append("INSERT INTO dbo.Customer( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );");
+            builder.AppendFormat("INSERT INTO [dbo].[{0}]( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );", TableName);
             builder.Append("SET @insertid = SCOPE_IDENTITY();");
             builder.Append("INSERT INTO [dbo].[Customer_CustomerRole_Mapping]( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleId );");
 
@@ -229,7 +207,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
         public int UpdateCustomer(Customer customer, int roleId)
         {
             StringBuilder builder = new StringBuilder(50);
-            builder.Append("UPDATE [dbo].[Customer] SET [Username] = @Username,[Email] = @Email,[Active] = @Active WHERE [Id] = @Id;");
+            builder.AppendFormat("UPDATE [dbo].[{0}] SET [Username] = @Username,[Email] = @Email,[Active] = @Active WHERE [Id] = @Id;", TableName);
             builder.Append("UPDATE [dbo].[Customer_CustomerRole_Mapping] SET [CustomerRoleId] = @CustomerRoleId WHERE [CustomerId] = @CustomerId;");
 
             return Execute(builder.ToString(), new

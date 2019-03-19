@@ -193,7 +193,7 @@ namespace DapperRepository.Data
 
             builder.Append(string.IsNullOrEmpty(predicate) ? string.Format("Id = {0};", entityId) : predicate);
 
-            return Execute(builder.ToString(), param, null, CommandType.Text, useTransaction) > 0;
+            return Execute(builder.ToString(), param, commandTimeout, CommandType.Text, useTransaction) > 0;
         }
 
         /// <summary>

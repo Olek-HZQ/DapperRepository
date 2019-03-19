@@ -13,21 +13,23 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
 {
     public class CustomerRepository : MysqlRepositoryBase<Customer>, ICustomerRepository, IMysqlRepository
     {
+        protected override string TableName { get { return string.Format("`{0}`", base.TableName); } }
+
         public Customer GetCustomerById(int id)
         {
             if (id == 0)
                 return null;
 
-            const string sql = "SELECT Id,Username,Email,Active,CreationTime FROM Customer WHERE Id = @id";
+            string sql = string.Format("SELECT Id,Username,Email,Active,CreationTime FROM {0} WHERE Id = @id", TableName);
             return GetById(sql, new { id }, commandType: CommandType.Text);
         }
 
         public CustomerDtoModel GetCustomerBy(int id)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM Customer c ");
-            sb.Append("JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
-            sb.Append("JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id WHERE c.Id = @id");
+            sb.AppendFormat("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM {0} c ", TableName);
+            sb.Append("JOIN `Customer_CustomerRole_Mapping` crm ON c.Id = crm.CustomerId ");
+            sb.Append("JOIN `CustomerRole` cr ON crm.CustomerRoleId = cr.Id WHERE c.Id = @id");
 
             string sql = sb.ToString();
             IDbSession session = DbSession;
@@ -52,39 +54,16 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
             }
         }
 
-        /* 
-        public int InsertList(out long time, List<Customer> customers, int roleid)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-
-            StringBuilder builder = new StringBuilder(50);
-            builder.Append("DECLARE @insertid INT;");
-            builder.Append("INSERT INTO dbo.Customer( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );");
-            builder.Append("SET @insertid = SCOPE_IDENTITY();");
-            builder.Append("INSERT INTO [dbo].[Customer_CustomerRole_Mapping]( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleid );");
-
-            stopwatch.Start();
-
-            int result = Execute(builder.ToString(), new { customers, roleid }); // If use this way, it couldn't insert the data, i don't know why.(if you know the way to solve this, please tell me, thanks!)
-
-            stopwatch.Stop();
-
-            time = stopwatch.ElapsedMilliseconds;
-
-            return result;
-        }
-         */
-
         public int InsertList(out long time, List<Customer> customers)
         {
             // 用于获取插入运行时间
             Stopwatch stopwatch = new Stopwatch();
 
             StringBuilder builder = new StringBuilder(50);
-            builder.Append("SET @roleid = (SELECT Id FROM CustomerRole WHERE SystemName = 'Guest' LIMIT 1);");
-            builder.Append("INSERT INTO Customer( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );");
+            builder.Append("SET @roleid = (SELECT Id FROM `CustomerRole` WHERE SystemName = 'Guest' LIMIT 1);");
+            builder.AppendFormat("INSERT INTO {0}( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );", TableName);
             builder.Append("SET @insertid = LAST_INSERT_ID();");
-            builder.Append("INSERT INTO Customer_CustomerRole_Mapping( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleid );");
+            builder.Append("INSERT INTO `Customer_CustomerRole_Mapping`( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleid );");
 
             stopwatch.Start();
 
@@ -100,9 +79,9 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
         public IEnumerable<CustomerDtoModel> GetAllCustomers()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM Customer c ");
-            sb.Append("JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
-            sb.Append("JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id ORDER BY c.Id DESC");
+            sb.AppendFormat("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM {0} c ", TableName);
+            sb.Append("JOIN `Customer_CustomerRole_Mapping` crm ON c.Id = crm.CustomerId ");
+            sb.Append("JOIN `CustomerRole` cr ON crm.CustomerRoleId = cr.Id ORDER BY c.Id DESC");
 
             string sql = sb.ToString();
             IDbSession session = DbSession;
@@ -163,13 +142,13 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
                     builder.Append("SET @PageLowerBound = @PageSize * @PageIndex;SET @PageUpperBound = @PageLowerBound + @PageSize + 1;");
 
                     builder.Append("CREATE TEMPORARY TABLE PageIndex( IndexId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,CustomerId INT NOT NULL);"); // 创建临时表 "PageIndex"
-                    builder.Append("INSERT INTO PageIndex( CustomerId ) SELECT Id FROM Customer ORDER BY Id DESC;");
+                    builder.AppendFormat("INSERT INTO PageIndex( CustomerId ) SELECT Id FROM {0} ORDER BY Id DESC;", TableName);
 
                     builder.Append("SELECT row_count();"); // 总数据量
                     builder.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM PageIndex pi ");
-                    builder.Append("INNER JOIN Customer c ON c.Id = pi.CustomerId ");
-                    builder.Append("INNER JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
-                    builder.Append("INNER JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id ");
+                    builder.AppendFormat("INNER JOIN {0} c ON c.Id = pi.CustomerId ", TableName);
+                    builder.Append("INNER JOIN `Customer_CustomerRole_Mapping` crm ON c.Id = crm.CustomerId ");
+                    builder.Append("INNER JOIN `CustomerRole` cr ON crm.CustomerRoleId = cr.Id ");
                     builder.Append("WHERE pi.IndexId > @PageLowerBound AND pi.IndexId < @PageUpperBound ORDER BY pi.IndexId LIMIT @PageSize;");
 
                     builder.Append("DROP TEMPORARY TABLE PageIndex;"); // 删除临时表 "PageIndex"
@@ -205,9 +184,9 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
         public int InsertCustomer(Customer customer, int roleId)
         {
             StringBuilder builder = new StringBuilder(50);
-            builder.Append("INSERT INTO Customer( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );");
+            builder.AppendFormat("INSERT INTO {0}( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );", TableName);
             builder.Append("SELECT @insertid:= LAST_INSERT_ID();");
-            builder.Append("INSERT INTO Customer_CustomerRole_Mapping( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleId );");
+            builder.Append("INSERT INTO `Customer_CustomerRole_Mapping`( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleId );");
 
             return Execute(builder.ToString(), new
             {
@@ -228,8 +207,8 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
         public int UpdateCustomer(Customer customer, int roleId)
         {
             StringBuilder builder = new StringBuilder(50);
-            builder.Append("UPDATE Customer SET Username = @Username,Email = @Email,Active = @Active WHERE Id = @Id;");
-            builder.Append("UPDATE Customer_CustomerRole_Mapping SET CustomerRoleId = @CustomerRoleId WHERE CustomerId = @CustomerId;");
+            builder.AppendFormat("UPDATE {0} SET Username = @Username,Email = @Email,Active = @Active WHERE Id = @Id;", TableName);
+            builder.Append("UPDATE `Customer_CustomerRole_Mapping` SET CustomerRoleId = @CustomerRoleId WHERE CustomerId = @CustomerId;");
 
             return Execute(builder.ToString(), new
             {
