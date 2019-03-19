@@ -1,4 +1,4 @@
 ﻿{
-    "MssqlMasterKey": "Data Source=.;Initial Catalog=DapperSampleDb;Integrated Security=True;",
+    "MssqlMasterKey": "Data Source=.;Initial Catalog=DapperRepositoryDb;Integrated Security=True;",
     "MysqlMasterKey": "your mysql connection string" 
 }
