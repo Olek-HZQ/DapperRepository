@@ -24,7 +24,7 @@ namespace DapperRepository.Web.Infrastructure
 
             builder.RegisterInstance(config).As<DapperRepositoryConfig>().SingleInstance();
 
-            var assembly = Assembly.GetExecutingAssembly();
+            Assembly assembly = Assembly.GetExecutingAssembly();
 
             builder.RegisterControllers(assembly);
 

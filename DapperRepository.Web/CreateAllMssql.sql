@@ -93,3 +93,58 @@ INSERT INTO [dbo].[CustomerRole]
            GETDATE())
 GO
 
+
+CREATE PROCEDURE [dbo].[DRD_Customer_GetAllCustomers]
+    (
+      @PageIndex INT ,
+      @PageSize INT ,
+      @TotalRecords INT OUTPUT
+    )
+AS
+    BEGIN
+        SET NOCOUNT ON;
+
+		-- paging
+        DECLARE @PageLowerBound INT;
+        DECLARE @PageUpperBound INT;
+        SET @PageLowerBound = @PageSize * @PageIndex;
+        SET @PageUpperBound = @PageLowerBound + @PageSize + 1;
+
+        CREATE TABLE #PageIndex
+            (
+              [IndexId] INT IDENTITY(1, 1)
+                            NOT NULL ,
+              [CustomerId] INT NOT NULL
+            );
+
+        INSERT  INTO #PageIndex
+                ( CustomerId
+                )
+                SELECT  Id
+                FROM    dbo.Customer
+                ORDER BY Id DESC;
+
+		-- total records
+        SET @TotalRecords = @@ROWCOUNT;
+
+		-- return customers
+        SELECT TOP ( @PageSize )
+                c.Id ,
+                c.Username ,
+                c.Email ,
+                c.Active ,
+                c.CreationTime ,
+                cr.Id ,
+                cr.Name ,
+                cr.SystemName
+        FROM    #PageIndex [pi]
+                INNER JOIN dbo.Customer c ON c.Id = [pi].CustomerId
+                INNER JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId
+                INNER JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id
+        WHERE   pi.IndexId > @PageLowerBound
+                AND pi.IndexId < @PageUpperBound
+        ORDER BY pi.IndexId;
+
+        DROP TABLE #PageIndex;
+
+    END;

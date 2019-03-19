@@ -31,7 +31,7 @@ CREATE TABLE `CustomerRole`  (
 -- Records of CustomerRole
 -- ----------------------------
 BEGIN;
-INSERT INTO `CustomerRole` VALUES (1, 'Admin', 'Admin', '2019-03-16 23:08:10'), (2, 'Guest', 'Guest', '2019-03-16 23:08:22'), (3, 'test', 'test', '2019-03-17 21:54:35');
+INSERT INTO `CustomerRole` VALUES (1, 'Admin', 'Admin', NOW()), (2, 'Guest', 'Guest', NOW());
 COMMIT;
 
 -- ----------------------------
@@ -51,7 +51,7 @@ delimiter ;;
 CREATE PROCEDURE `DRD_Customer_GetAllCustomers`(IN PageIndex INT,IN PageSize INT, OUT TotalRecords INT)
 BEGIN
 	DECLARE PageLowerBound INT;
-  DECLARE PageUpperBound INT;
+    DECLARE PageUpperBound INT;
 	SET PageLowerBound = PageSize * PageIndex;
 	SET PageUpperBound = PageSize * PageIndex + PageSize + 1;
 	CREATE TEMPORARY TABLE PageIndex

@@ -114,10 +114,8 @@
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
-    <Content Include="CreateDatabase.sql" />
-    <Content Include="CreateProcForMssql.sql" />
-    <Content Include="CreateTableAndProcForMysql.sql" />
-    <Content Include="CreateTableAndDataForMssql.sql" />
+    <Content Include="CreateAllMysql.sql" />
+    <Content Include="CreateAllMssql.sql" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="packages.config" />
