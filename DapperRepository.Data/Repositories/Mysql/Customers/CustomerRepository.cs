@@ -115,8 +115,8 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
             IDbSession session = DbSession;
 
             DynamicParameters parameters = new DynamicParameters();
-            parameters.Add("PageIndex", pageIndex, DbType.Int32);
-            parameters.Add("PageSize", pageSize, DbType.Int32);
+            parameters.Add("@PageIndex", pageIndex, DbType.Int32);
+            parameters.Add("@PageSize", pageSize, DbType.Int32);
 
             try
             {
