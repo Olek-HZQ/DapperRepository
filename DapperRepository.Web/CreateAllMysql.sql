@@ -65,8 +65,8 @@ BEGIN
 		Id DESC;
 	
 	SET TotalRecords = row_count( );
-	SELECT
-		c.Id,
+
+	SELECT c.Id,
 		c.Username,
 		c.Email,
 		c.Active,
