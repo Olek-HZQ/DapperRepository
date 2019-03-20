@@ -82,8 +82,7 @@ BEGIN
 		pi.IndexId > PageLowerBound 
 		AND pi.IndexId < PageUpperBound 
 	ORDER BY
-		pi.IndexId 
-		LIMIT PageSize;
+		pi.IndexId;
 	DROP TEMPORARY TABLE PageIndex;
 
 END

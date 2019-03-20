@@ -128,8 +128,7 @@ AS
         SET @TotalRecords = @@ROWCOUNT;
 
 		-- return customers
-        SELECT TOP ( @PageSize )
-                c.Id ,
+        SELECT  c.Id ,
                 c.Username ,
                 c.Email ,
                 c.Active ,

@@ -115,8 +115,8 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
             IDbSession session = DbSession;
 
             DynamicParameters parameters = new DynamicParameters();
-            parameters.Add("@PageIndex", pageIndex, DbType.Int32);
-            parameters.Add("@PageSize", pageSize, DbType.Int32);
+            parameters.Add("PageIndex", pageIndex, DbType.Int32);
+            parameters.Add("PageSize", pageSize, DbType.Int32);
 
             try
             {
@@ -149,7 +149,7 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
                     builder.AppendFormat("INNER JOIN {0} c ON c.Id = pi.CustomerId ", TableName);
                     builder.Append("INNER JOIN `Customer_CustomerRole_Mapping` crm ON c.Id = crm.CustomerId ");
                     builder.Append("INNER JOIN `CustomerRole` cr ON crm.CustomerRoleId = cr.Id ");
-                    builder.Append("WHERE pi.IndexId > @PageLowerBound AND pi.IndexId < @PageUpperBound ORDER BY pi.IndexId LIMIT @PageSize;");
+                    builder.Append("WHERE pi.IndexId > @PageLowerBound AND pi.IndexId < @PageUpperBound ORDER BY pi.IndexId;");
 
                     builder.Append("DROP TEMPORARY TABLE PageIndex;"); // 删除临时表 "PageIndex"
 

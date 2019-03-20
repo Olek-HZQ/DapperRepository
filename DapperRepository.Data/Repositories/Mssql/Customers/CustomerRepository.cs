@@ -146,7 +146,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
                     builder.AppendFormat("INSERT INTO #PageIndex( CustomerId ) SELECT Id FROM dbo.{0} ORDER BY Id DESC;", TableName);
 
                     builder.Append("SELECT @@ROWCOUNT;"); // 总数据量
-                    builder.Append("SELECT TOP ( @PageSize ) c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM #PageIndex [pi] ");
+                    builder.Append("SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,cr.Id,cr.Name,cr.SystemName FROM #PageIndex [pi] ");
                     builder.AppendFormat("INNER JOIN [dbo].[{0}] c ON c.Id = [pi].CustomerId ", TableName);
                     builder.Append("INNER JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId ");
                     builder.Append("INNER JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id ");
