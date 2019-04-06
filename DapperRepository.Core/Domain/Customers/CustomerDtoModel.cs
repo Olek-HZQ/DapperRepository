@@ -2,7 +2,7 @@
 
 namespace DapperRepository.Core.Domain.Customers
 {
-    public class CustomerDtoModel
+    public class BaseCustomerDtoModel
     {
         public int Id { get; set; }
 
@@ -13,7 +13,15 @@ namespace DapperRepository.Core.Domain.Customers
         public bool Active { get; set; }
 
         public DateTime CreationTime { get; set; }
+    }
 
-        public virtual CustomerRole CustomerRole { get; set; }
+    public class CustomerDtoModel : BaseCustomerDtoModel
+    {
+        public CustomerRole CustomerRole { get; set; }
+    }
+
+    public class CustomerDtoModelForPage : BaseCustomerDtoModel
+    {
+        public int CustomerRoleId { get; set; }
     }
 }

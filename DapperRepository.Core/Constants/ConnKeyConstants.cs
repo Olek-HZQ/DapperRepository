@@ -12,7 +12,7 @@
         public const string MssqlMasterKey = "MssqlMasterKey";
 
         // 可根据具体项目定义多个
-        // public const strig MssqlSecondConnKey = "MssqlSecondConnKey";
+        // public const string MssqlSecondConnKey = "MssqlSecondConnKey";
 
         #endregion
 
@@ -21,6 +21,8 @@
         public const string Mysql = "Mysql";
 
         public const string MysqlMasterKey = "MysqlMasterKey";
+
+        public const string LocalMysqlMasterKey = "LocalMysqlMasterKey";
 
         #endregion
 

@@ -1,4 +1,3 @@
-
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -10,10 +9,12 @@ CREATE TABLE `Customer`  (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `Username` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `Email` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `Active` tinyint(1) NULL DEFAULT NULL,
+  `Active` tinyint(1) NOT NULL,
   `CreationTime` datetime(0) NOT NULL,
-  PRIMARY KEY (`Id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 104 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`Id`) USING BTREE,
+  INDEX `In_Username`(`Username`(30)) USING BTREE,
+  INDEX `In_Email`(`Email`(64)) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 13580486 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for CustomerRole
@@ -25,14 +26,7 @@ CREATE TABLE `CustomerRole`  (
   `SystemName` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `CreationTime` datetime(0) NOT NULL,
   PRIMARY KEY (`Id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
-
--- ----------------------------
--- Records of CustomerRole
--- ----------------------------
-BEGIN;
-INSERT INTO `CustomerRole` VALUES (1, 'Admin', 'Admin', NOW()), (2, 'Guest', 'Guest', NOW());
-COMMIT;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for Customer_CustomerRole_Mapping
@@ -40,50 +34,43 @@ COMMIT;
 DROP TABLE IF EXISTS `Customer_CustomerRole_Mapping`;
 CREATE TABLE `Customer_CustomerRole_Mapping`  (
   `CustomerId` int(11) NOT NULL,
-  `CustomerRoleId` int(11) NOT NULL
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+  `CustomerRoleId` int(11) NOT NULL,
+  INDEX `In_CustomerId`(`CustomerId`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Procedure structure for DRD_Customer_GetAllCustomers
 -- ----------------------------
 DROP PROCEDURE IF EXISTS `DRD_Customer_GetAllCustomers`;
 delimiter ;;
-CREATE PROCEDURE `DRD_Customer_GetAllCustomers`(IN PageIndex INT,IN PageSize INT, OUT TotalRecords INT)
+CREATE PROCEDURE `DRD_Customer_GetAllCustomers`(IN `PageLowerBound` INT,IN `PageSize` INT,IN `Username` varchar(30),IN `Email` varchar(64),IN `UseDescOrder` INT)
 BEGIN
-	DECLARE PageLowerBound INT;
-    DECLARE PageUpperBound INT;
-	SET PageLowerBound = PageSize * PageIndex;
-	SET PageUpperBound = PageSize * PageIndex + PageSize + 1;
-	CREATE TEMPORARY TABLE PageIndex
-	( IndexId INT NOT NULL AUTO_INCREMENT PRIMARY KEY, CustomerId INT NOT NULL );
-	INSERT INTO PageIndex
-	( CustomerId ) SELECT
-	Id 
-	FROM
-		Customer 
-	ORDER BY
-		Id DESC;
-	
-	SET TotalRecords = row_count( );
-
-	SELECT c.Id,
-		c.Username,
-		c.Email,
-		c.Active,
-		c.CreationTime,
-		cr.Id,
-		cr.Name,
-		cr.SystemName 
-		FROM PageIndex pi
-		INNER JOIN Customer c ON c.Id = pi.CustomerId
-		INNER JOIN Customer_CustomerRole_Mapping crm ON c.Id = crm.CustomerId
-		INNER JOIN CustomerRole cr ON crm.CustomerRoleId = cr.Id 
-	WHERE
-		pi.IndexId > PageLowerBound 
-		AND pi.IndexId < PageUpperBound 
-	ORDER BY
-		pi.IndexId;
-	DROP TEMPORARY TABLE PageIndex;
+    
+		SET @strsql = 'SELECT c.Id,c.Username,c.Email,c.Active,c.CreationTime,ccrm.CustomerRoleId FROM `Customer` c INNER JOIN `Customer_CustomerRole_Mapping` ccrm ON c.Id = ccrm.CustomerId INNER JOIN (SELECT Id FROM `Customer` WHERE 1 = 1 ';
+		
+		IF(LENGTH(@Username)>0) THEN
+		SET @strsql = CONCAT(@strsql,'AND Username LIKE ''',CONCAT(@Username,'%'),''' ');
+		ELSE
+		SET @strsql = CONCAT(@strsql,' ');
+		END IF;
+		
+		IF(LENGTH(@Email)>0) THEN
+		SET @strsql = CONCAT(@strsql,'AND Email LIKE ''',CONCAT(@Email,'%'),''' ');
+		ELSE
+		SET @strsql = CONCAT(@strsql,' ');
+		END IF;
+		
+		IF(@UseDescOrder=1) THEN
+		SET @strsql = CONCAT(@strsql,'ORDER BY Id DESC LIMIT ',@PageLowerBound,', ', @PageSize,') AS cu USING (Id) ORDER BY Id DESC;');
+		ELSE
+		SET @strsql = CONCAT(@strsql,'ORDER BY Id LIMIT ',@PageLowerBound,', ', @PageSize,') AS cu USING (Id);');
+		END IF;
+		
+		-- SELECT @strsql;
+		
+		PREPARE stmt1 FROM @strsql; 
+    EXECUTE stmt1; 
+    DEALLOCATE PREPARE stmt1; 
 
 END
 ;;

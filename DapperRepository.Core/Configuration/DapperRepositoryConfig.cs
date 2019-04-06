@@ -13,6 +13,9 @@ namespace DapperRepository.Core.Configuration
             var startupNode = section.SelectSingleNode("CurrentActivedDbType");
             config.ActivedDbTypeName = GetString(startupNode, "ActivedDbTypeName");
 
+            var redisCachingNode = section.SelectSingleNode("RedisCaching");
+            config.RedisCachingConnectionString = GetString(redisCachingNode, "ConnectionString");
+
             return config;
         }
 
@@ -31,5 +34,10 @@ namespace DapperRepository.Core.Configuration
         }
 
         public string ActivedDbTypeName { get; set; }
+
+        /// <summary>
+        /// Redis connection string. Used when Redis caching is enabled
+        /// </summary>
+        public string RedisCachingConnectionString { get; private set; }
     }
 }

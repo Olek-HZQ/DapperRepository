@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Web.Mvc;
 using Autofac;
 using Autofac.Integration.Mvc;
+using DapperRepository.Core.Cache;
 using DapperRepository.Core.Configuration;
 using DapperRepository.Core.Constants;
 
@@ -27,6 +28,12 @@ namespace DapperRepository.Web.Infrastructure
             Assembly assembly = Assembly.GetExecutingAssembly();
 
             builder.RegisterControllers(assembly);
+
+            RegisterMore(builder, x =>
+            {
+                x.RegisterType<RedisConnectionWrapper>().As<IRedisConnectionWrapper>().SingleInstance();
+                x.RegisterType<RedisCacheManager>().As<ICacheManager>().InstancePerLifetimeScope();
+            });
 
             if (config != null)
             {

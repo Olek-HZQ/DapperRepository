@@ -11,6 +11,7 @@ namespace DapperRepository.Data.Repositories.Mssql
             get { return DatabaseType.Mssql; }
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// 当前数据库连接串的key(默认主数据库key)
         /// </summary>
@@ -19,9 +20,13 @@ namespace DapperRepository.Data.Repositories.Mssql
             get { return ConnKeyConstants.MssqlMasterKey; }
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// 数据表名(默认类名，如果不是，需要在子类重写)
+        /// </summary>
         protected override string TableName
         {
-            get { return typeof(T).Name; }
+            get { return string.Format("[dbo].[{0}]", typeof(T).Name); }
         }
     }
 }

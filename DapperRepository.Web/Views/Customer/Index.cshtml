@@ -1,103 +1,93 @@
-﻿@model IEnumerable<DapperRepository.Core.Domain.Customers.CustomerDtoModel>
+﻿@model DapperRepository.Web.Models.Customers.CustomerModel
 @{
     ViewBag.Title = "Index";
 }
+<style>
+    a.edit a.remove {
+        color: #007bff;
+    }
+</style>
 
-<h2>Data List</h2>
-
-@*<h3>@ViewBag.ExecuteResult @ViewBag.ExecuteTime</h3>*@
-<div class="content-header clearfix">
+<h4>Data List(data source from database：@ViewBag.DbSource)</h4>
+<div class="clearfix">
     <h5 class="pull-left">
-        <a href="@Url.Action("Create")" class="btn btn-primary">Add</a>
+
+        <span style="display:none;">
+            <input type="number" id="insert-num" style="margin-top:5px;" class="form-control" placeholder="请输入要插入测试数据的数量" />
+            <button type="button" id="insert-sample-customer" class="btn btn-primary">Insert Sample Customer</button>
+        </span>
     </h5>
 </div>
-<table id="customer-table" class="table table-bordered"></table>
+<div class="form-horizontal">
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="control-label" for="search-username">Username</label>
+                    <div>
+                        <input type="text" class="form-control" id="search-username">
+                        <span id="span-search-username" style="color:#ff0000;"></span>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="search-email">Email</label>
+                    <div>
+                        <input type="text" class="form-control" id="search-email">
+                        <span id="span-search-email" style="color:#ff0000;"></span>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="add()" data-toggle="modal" data-target="#operationModal">Add Customer</button>
+                    <button type="button" id="btn-search" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="margin-top:15px;">
+    <table id="customer-table" class="table table-bordered"></table>
+</div>
+
+<div class="modal fade" id="operationModal" tabindex="-1" role="dialog" aria-labelledby="operationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="operationModalLabel">Add Customer</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="Username">Name</label>
+                        <input id="Username" name="Username" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Email">Email</label>
+                        <input id="Email" name="Email" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="@Model.RoleId">Role</label>
+                        @Html.DropDownListFor(model => model.RoleId, Model.AvailableRoles, new { @class = "form-control" })
+                    </div>
+                    <div class="form-group">
+                        <label for="Active">Active</label>
+                        <input id="Active" name="Active" type="checkbox" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="text-align:center;">
+                <button type="button" class="btn btn-primary" id="btnAdd">Add</button>
+                <button type="button" class="btn btn-primary" id="btnUpdate" style="display:none;">Update</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div>
     <h2>For more info:</h2>
     Blog Address: <a href="https://www.cnblogs.com/YUTOUYUWEI/p/10450953.html" target="_blank">BLOG</a>
     <br />
     <br />
-    Git Address: <a href="https://github.com/Olek-HZQ/DapperRepositoryDemo" target="_blank">Dapper and Repository Pattern in MVC </a>
+    Git Address: <a href="https://github.com/Olek-HZQ/DapperRepository" target="_blank">Dapper and Repository Pattern in MVC </a>
 </div>
-<script>
-    $(function () {
-
-        $('#customer-table').bootstrapTable({
-            url: '@Url.Action("CustomerList")',
-            method: 'GET',
-            cache: false,
-            pagination: true,
-            queryParams: function (e) {
-                var param = {
-                    pageIndex: (e.offset / e.limit) + 1,
-                    pageSize: e.limit
-                };
-                return param;
-            },
-            sidePagination: "server",
-            pageNumber: 1,
-            pageSize: 10,
-            uniqueId: "Id",
-            columns: [
-                {
-                    field: 'Id',
-                    title: 'ID'
-                }, {
-                    field: 'Username',
-                    title: 'Username'
-                }, {
-                    field: 'Email',
-                    title: 'Email'
-                }, {
-                    field: "RoleName",
-                    title: "Role"
-                }, {
-                    field: 'Active',
-                    title: 'Active'
-                }, {
-                    field: "CreationTime",
-                    title: "CreationTime"
-                },
-                {
-                    field: "Action",
-                    title: "Action",
-                    align: "center",
-                    formatter: action,
-                    edit: true
-                }
-            ]
-        });
-
-    });
-
-    function action(value, row) {
-        var str = '';
-        str += '<a class="btn btn-default btn-sm href="javascript:void(0);" onclick="editCustomer(' + row.Id + ')" title="Edit">Edit</a>  ';
-        str += '  <a class="btn btn-default btn-sm href="javascript:void(0);" onclick="deleteCustomer(' + row.Id + ')" title="Delete">Delete</a>';
-
-        return str;
-    }
-
-    function editCustomer(id) {
-        location.href = '/Customer/Edit/' + id;
-    }
-
-    function deleteCustomer(id) {
-        if (confirm("Are you sure to delete the data?")) {
-            $.ajax({
-                url: "@Url.Action("Delete")",
-                type: "POST",
-                data: { id: id }
-            }).done(function (data) {
-                if (data.status) {
-                    location.reload();
-                } else {
-                    console.log(data.msg);
-                }
-            }).error(function (xhr) {
-                console.log(xhr.message);
-            });
-        }
-    }
-
-</script>
+<script src="~/Scripts/customer.js"></script>

@@ -9,7 +9,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
     {
         public IEnumerable<CustomerRole> GetCustomerRoles()
         {
-            const string sql = "SELECT Id,Name,SystemName FROM CustomerRole";
+            string sql = string.Format("SELECT Id,Name,SystemName FROM {0}", TableName);
 
             return GetList(sql, commandType: CommandType.Text, useTransaction: true);
         }

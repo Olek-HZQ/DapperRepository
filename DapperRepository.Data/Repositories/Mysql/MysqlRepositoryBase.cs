@@ -19,12 +19,13 @@ namespace DapperRepository.Data.Repositories.Mysql
             get { return ConnKeyConstants.MysqlMasterKey; }
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// 数据表名(默认类名，如果不是，需要在子类重写)
         /// </summary>
         protected override string TableName
         {
-            get { return typeof(T).Name; }
+            get { return string.Format("`{0}`", typeof(T).Name); }
         }
     }
 }
