@@ -70,6 +70,7 @@ This should be consistent with the defined key (convention)
  ![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
 
 * Modify the database connection string
+
 The database connection string is defined in the ~App_Data/DbConnSettings.json file and can be modified by yourself.
 ```c#
      {
@@ -86,7 +87,7 @@ Any questions are welcome to contact, contact information:
 
 Author:`HuangZhongQiu`
 
-QQ Email: `875755898`
+QQ Email: `875755898@qq.com`
 
 Google Email:`huangzhongqiu25@gmail.com`
 
