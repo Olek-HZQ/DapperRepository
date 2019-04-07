@@ -9,9 +9,13 @@ First add a new database called DapperRepositoryDb and execute the sql script yo
  ## 2.	Project stratification
 reference from nopcommerce：https://www.nopcommerce.com
 Relevant descriptions and current status of each layer：
+
 DapperRepository.Core: Placing related data interfaces and entity objects, caches, and public classes
+
 DapperRepository.Data: Data manipulation layer, implementing specific Repository and database connection and access
+
 DapperRepository.Services: Business logic layer, processing related business logic
+
 DapperRepository.Web: client operation
 
      
@@ -46,9 +50,11 @@ Here I am not using a single injection one by one, but through the agreement to 
 This static class defines the database type key and the database connection string key. 
  
 The default implementation is in the instance generic class MySqlRepositoryBase<T>, such as:
+ 
  ![](http://gitfile.coolwecool.com/dapperrepository/4.jpg)
  
 Currently defined database type is mysql, database connection string and data table name, note that the DataType property modifier is sealed, so the subclass can not be override, because the convention is to use mysql, if you need to switch the current data instance, you need to re The class overrides ConnStrKey, and the TableName is the same, such as:
+
  ![](http://gitfile.coolwecool.com/dapperrepository/4.jpg)
  
 This makes it possible to switch database instances (specifically based on business needs). Of course, this change is only valid for the current instance (so the framework can implement the current single database type and multiple database instances)
@@ -78,7 +84,7 @@ Any questions are welcome to contact, contact information:
 
 Author:`HuangZhongQiu`
 
-QQ Email: `877558989`
+QQ Email: `875755898`
 
 Google Email:`huangzhongqiu25@gmail.com`
 
