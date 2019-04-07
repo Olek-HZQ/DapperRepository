@@ -8,6 +8,7 @@ First add a new database called DapperRepositoryDb and execute the sql script yo
  
  ## 2.	Project stratification
 reference from nopcommerce：https://www.nopcommerce.com
+
 Relevant descriptions and current status of each layer：
 
 DapperRepository.Core: Placing related data interfaces and entity objects, caches, and public classes
@@ -56,17 +57,17 @@ The default implementation is in the instance generic class MySqlRepositoryBase<
  
 Currently defined database type is mysql, database connection string and data table name, note that the DataType property modifier is sealed, so the subclass can not be override, because the convention is to use mysql, if you need to switch the current data instance, you need to re The class overrides ConnStrKey, and the TableName is the same, such as:
 
- ![](http://gitfile.coolwecool.com/dapperrepository/4.jpg)
+ ![](http://gitfile.coolwecool.com/dapperrepository/5.jpg)
  
 This makes it possible to switch database instances (specifically based on business needs). Of course, this change is only valid for the current instance (so the framework can implement the current single database type and multiple database instances)
  
 * Switch database type
- ![](http://gitfile.coolwecool.com/dapperrepository/5.jpg)
+ ![](http://gitfile.coolwecool.com/dapperrepository/6.jpg)
  
 Just modify it to switch the database type of the current project.
 This should be consistent with the defined key (convention)
 
- ![](http://gitfile.coolwecool.com/dapperrepository/6.jpg)
+ ![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
 
 * Modify the database connection string
 The database connection string is defined in the ~App_Data/DbConnSettings.json file and can be modified by yourself.
