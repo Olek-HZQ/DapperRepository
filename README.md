@@ -62,9 +62,11 @@ Currently defined database type is mysql, database connection string and data ta
 This makes it possible to switch database instances (specifically based on business needs). Of course, this change is only valid for the current instance (so the framework can implement the current single database type and multiple database instances)
  
 * Switch database type
- ![](http://gitfile.coolwecool.com/dapperrepository/6.jpg)
- 
+
 Just modify it to switch the database type of the current project.
+
+ ![](http://gitfile.coolwecool.com/dapperrepository/6.jpg) 
+
 This should be consistent with the defined key (convention)
 
  ![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
