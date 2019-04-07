@@ -17,25 +17,27 @@ DapperRepository.Web: client operation
      
  ## 3.	Adapt to the design idea of multi-instance database multi-instance
 ![](http://gitfile.coolwecool.com/dapperrepository/1.jpg)
-Generic interface Irepository<T>: the most basic CURD
+Generic interface `IRepository<T>`: the most basic CURD
     
-Instance interface ICustomerRepository: inherits ICustomerRepository and extensions, generic interface (for different database types)
+Instance interface `ICustomerRepository`: inherits ICustomerRepository and extensions, generic interface (for different database types)
 
-The underlying abstract class RepositoryDataTypeBase: This defines the abstract property key of the database connection string (because my database connection string is configured as a json file, post-serialized into a dictionary), the abstract property DataType (which specifies which type of database), and the abstract property TableName ( The name of the data table under the current database), the attribute DbSession (database session attribute, the instance implements the transaction operation)
+The underlying abstract class `RepositoryDataTypeBase`: This defines the abstract property key of the database connection string (because my database connection string is configured as a json file, post-serialized into a dictionary), the abstract property DataType (which specifies which type of database), and the abstract property TableName ( The name of the data table under the current database), the attribute DbSession (database session attribute, the instance implements the transaction operation)
 
-Generic abstract class RepositoryBase<T>: method for implementing generic interface Irepository<T>
+Generic abstract class `RepositoryBase<T>`: method for implementing generic interface `IRepository<T>`
 
-The instance generic class MySqlRepositoryBase<T>: defines an instance generic class of a specific database type, rewrites the abstract property defined by the underlying abstract class, thereby obtaining the specific connection string key, database type and table name.
+The instance generic class `MySqlRepositoryBase<T>`: defines an instance generic class of a specific database type, rewrites the abstract property defined by the underlying abstract class, thereby obtaining the specific connection string key, database type and table name.
 
-Concrete instance class CustomerRepository: implement generic interface Irepository<T> and instance interface IcustomerRepository
+Concrete instance class `CustomerRepository`: implement generic interface `Irepository<T>` and instance interface IcustomerRepository
 
  ## 4.	Cache design redis
  The cache design is all referenced to NopCommerce, so this part is not my personal design, here is probably talk about, redis is a distributed cache, so nop uses RedLock.net as a distributed lock, and is subsequently registered as a redis singleton. The serialization format is json, and the rest is to cache daily operations.
  
  ## 5.	Dependency injection Autofac
- Dependency injection uses autofac, which is mainly used for decoupling between modules and project maintainability.
- ![](http://gitfile.coolwecool.com/dapperrepository/2.jpg)
- Here I am not using a single injection, but through the agreement to find the unified injection after reflection, I also wrote an extension registration to support the unified registration of other examples that are still needed.
+Dependency injection uses autofac, which is mainly used for decoupling between modules and project maintainability.
+ 
+![](http://gitfile.coolwecool.com/dapperrepository/2.jpg)
+ 
+Here I am not using a single injection one by one, but through the agreement to find the unified injection after reflection, I also wrote an extension registration to support the unified registration of other examples that are still needed.
  
  ## 6.	Demonstrate basic configuration and operation
  * Switch database instance and modify table name
@@ -69,6 +71,16 @@ The database connection string is defined in the ~App_Data/DbConnSettings.json f
         "LocalMysqlMasterKey": "you local mysql connection string"
       }
 ```
+
+## Contact me
+Any questions are welcome to contact, contact information:
+
+Author:`HuangZhongQiu`
+
+QQ Email: `877558989`
+
+Google Email:`huangzhongqiu25@gmail.com`
+
 
 Demo Address: http://dapperrepository.coolwecool.com
 
