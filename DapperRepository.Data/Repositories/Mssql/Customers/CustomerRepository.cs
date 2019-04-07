@@ -250,7 +250,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
         {
             StringBuilder builder = new StringBuilder(50);
             builder.AppendFormat("INSERT INTO {0}( Username,Email,Active,CreationTime ) VALUES ( @Username,@Email,@Active,@CreationTime );", TableName);
-            builder.Append("INSERT INTO [dbo].[Customer_CustomerRole_Mapping]( CustomerId,CustomerRoleId ) VALUES ( @insertid,@roleId );");
+            builder.Append("INSERT INTO [dbo].[Customer_CustomerRole_Mapping]( CustomerId,CustomerRoleId ) VALUES ( SCOPE_IDENTITY(),@roleId );");
 
             return Execute(builder.ToString(), new
             {
