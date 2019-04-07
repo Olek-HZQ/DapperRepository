@@ -45,7 +45,7 @@ Dependency injection uses autofac, which is mainly used for decoupling between m
 Here I am not using a single injection one by one, but through the agreement to find the unified injection after reflection, I also wrote an extension registration to support the unified registration of other examples that are still needed.
  
  ## 6.	Demonstrate basic configuration and operation
-* Switch database instance and modify table name
+### Switch database instance and modify table name
 
 This static class defines the database type key and the database connection string key. 
 
@@ -53,25 +53,25 @@ This static class defines the database type key and the database connection stri
  
 The default implementation is in the instance generic class MySqlRepositoryBase<T>, such as:
  
- ![](http://gitfile.coolwecool.com/dapperrepository/4.jpg)
+![](http://gitfile.coolwecool.com/dapperrepository/4.jpg)
  
 Currently defined database type is mysql, database connection string and data table name, note that the DataType property modifier is sealed, so the subclass can not be override, because the convention is to use mysql, if you need to switch the current data instance, you need to re The class overrides ConnStrKey, and the TableName is the same, such as:
 
- ![](http://gitfile.coolwecool.com/dapperrepository/5.jpg)
+![](http://gitfile.coolwecool.com/dapperrepository/5.jpg)
  
 This makes it possible to switch database instances (specifically based on business needs). Of course, this change is only valid for the current instance (so the framework can implement the current single database type and multiple database instances)
  
-* Switch database type
+### Switch database type
 
 Just modify it to switch the database type of the current project.
 
- ![](http://gitfile.coolwecool.com/dapperrepository/6.jpg) 
+![](http://gitfile.coolwecool.com/dapperrepository/6.jpg) 
 
 This should be consistent with the defined key (convention)
 
- ![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
+![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
 
-* Modify the database connection string
+### Modify the database connection string
 
 The database connection string is defined in the ~App_Data/DbConnSettings.json file and can be modified by yourself.
 ```c#
