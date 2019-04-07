@@ -45,9 +45,10 @@ Here I am not using a single injection one by one, but through the agreement to 
  
  ## 6.	Demonstrate basic configuration and operation
 * Switch database instance and modify table name
- ![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
- 
+
 This static class defines the database type key and the database connection string key. 
+
+![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
  
 The default implementation is in the instance generic class MySqlRepositoryBase<T>, such as:
  
