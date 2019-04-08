@@ -222,7 +222,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
                     }
                     builder.AppendFormat("{0} OFFSET @PageLowerBound ROWS FETCH NEXT @PageSize ROWS ONLY) AS cu ON c.Id = cu.Id ", useDescOrder ? "ORDER BY Id DESC" : "ORDER BY Id");
 
-                    builder.Append("ORDER BY Id DESC;");
+                    builder.Append("ORDER BY c.Id DESC;");
 
                     SqlMapper.GridReader multi = session.Connection.QueryMultiple(builder.ToString(), parameters, session.Transaction, commandType: CommandType.Text);
 

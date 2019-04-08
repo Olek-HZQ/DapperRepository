@@ -61,10 +61,12 @@ BEGIN
 		END IF;
 		
 		IF(@UseDescOrder=1) THEN
-		SET @strsql = CONCAT(@strsql,'ORDER BY Id DESC LIMIT ',@PageLowerBound,', ', @PageSize,') AS cu USING (Id) ORDER BY Id DESC;');
+		SET @strsql = CONCAT(@strsql,'ORDER BY Id DESC LIMIT ',@PageLowerBound,', ', @PageSize,') AS cu USING (Id)');
 		ELSE
-		SET @strsql = CONCAT(@strsql,'ORDER BY Id LIMIT ',@PageLowerBound,', ', @PageSize,') AS cu USING (Id);');
+		SET @strsql = CONCAT(@strsql,'ORDER BY Id LIMIT ',@PageLowerBound,', ', @PageSize,') AS cu USING (Id)');
 		END IF;
+		
+		SET @strSql = CONCAT(@strSql,' ORDER BY c.Id DESC;');
 		
 		-- SELECT @strsql;
 		

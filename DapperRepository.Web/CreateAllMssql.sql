@@ -57,7 +57,7 @@ AS
                                      + CAST(@PageLowerBound AS VARCHAR)
                                      + ' ROWS FETCH NEXT '
                                      + CAST(@PageSize AS VARCHAR)
-                                     + ' ROWS ONLY ) AS cu ON cu.Id = c.Id ORDER BY Id DESC;');
+                                     + ' ROWS ONLY ) AS cu ON cu.Id = c.Id');
             END;
         ELSE
             BEGIN
@@ -66,8 +66,10 @@ AS
                                      + CAST(@PageLowerBound AS VARCHAR)
                                      + ' ROWS FETCH NEXT '
                                      + CAST(@PageSize AS VARCHAR)
-                                     + ' ROWS ONLY ) AS cu ON cu.Id = c.Id;');
+                                     + ' ROWS ONLY ) AS cu ON cu.Id = c.Id');
             END;    
+						
+			SET @strSql = CONCAT(@strSql,' ORDER BY c.Id DESC;');
 
         EXEC (@StrSql);
 

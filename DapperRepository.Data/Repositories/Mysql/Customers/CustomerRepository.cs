@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Dapper;
-using DapperRepository.Core.Constants;
 using DapperRepository.Core.Data;
 using DapperRepository.Core.Domain.Customers;
 using DapperRepository.Data.Repositories.BaseInterfaces;
@@ -16,7 +15,7 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
     {
         //protected override string ConnStrKey
         //{
-        //    get { return ConnKeyConstants.LocalMysqlMasterKey; }
+        //    get { return Core.Constants.ConnKeyConstants.LocalMysqlMasterKey; }
         //}
 
         public Customer GetCustomerById(int id)
@@ -218,7 +217,7 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
                     }
                     builder.AppendFormat("{0} LIMIT @PageLowerBound, @PageSize) AS cu USING (Id) ", useDescOrder ? "ORDER BY Id DESC" : "ORDER BY Id");
 
-                    builder.Append("ORDER BY Id DESC;");
+                    builder.Append("ORDER BY c.Id DESC;");
 
                     customers = session.Connection.Query<CustomerDtoModelForPage>(builder.ToString(), parameters, session.Transaction, commandType: CommandType.Text).AsEnumerable();
                 }
