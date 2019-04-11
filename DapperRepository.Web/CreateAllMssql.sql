@@ -32,7 +32,7 @@ AS
 		
         IF ( @Username != '' )
             BEGIN
-                SET @StrSql = CONCAT(@StrSql, 'AND Username LIKE ''',
+                SET @StrSql = CONCAT(@StrSql, 'AND Username LIKE N''',
                                      CONCAT(@Username, '%'), ''' ');
             END;
         ELSE
@@ -69,8 +69,9 @@ AS
                                      + ' ROWS ONLY ) AS cu ON cu.Id = c.Id');
             END;    
 						
-			SET @strSql = CONCAT(@strSql,' ORDER BY c.Id DESC;');
-
+						SET @StrSql = CONCAT(@StrSql,' ORDER BY c.Id DESC;');
+        
+				
         EXEC (@StrSql);
 
     END;

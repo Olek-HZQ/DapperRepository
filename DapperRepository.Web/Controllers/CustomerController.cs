@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Web.Mvc;
 using DapperRepository.Core.Configuration;
+using DapperRepository.Core.Constants;
 using DapperRepository.Core.Domain.Customers;
 using DapperRepository.Services.BaseInterfaces;
 using DapperRepository.Web.Models.Customers;
@@ -42,7 +43,7 @@ namespace DapperRepository.Web.Controllers
         public ActionResult CustomerList(int pageIndex, int pageSize, string username, string email)
         {
             int total;
-            var customers = _customerService.GetPagedCustomers(out total, username, email, pageIndex - 1, pageSize);
+            var customers = _customerService.GetPagedCustomers(out total, username, email, pageIndex - 1, pageSize, _config.ActivedDbTypeName == ConnKeyConstants.Mssql);
 
             var customerRoles = _customerRoleService.GetCustomerRoles();
 

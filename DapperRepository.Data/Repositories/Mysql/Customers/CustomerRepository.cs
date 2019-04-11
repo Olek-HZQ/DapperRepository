@@ -219,7 +219,7 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
 
                     builder.Append("ORDER BY c.Id DESC;");
 
-                    customers = session.Connection.Query<CustomerDtoModelForPage>(builder.ToString(), parameters, session.Transaction, commandType: CommandType.Text).AsEnumerable();
+                    customers = session.Connection.Query<CustomerDtoModelForPage>(builder.ToString(), parameters, session.Transaction, commandType: CommandType.Text);
                 }
 
                 //session.Commit();
@@ -227,7 +227,7 @@ namespace DapperRepository.Data.Repositories.Mysql.Customers
                 return customers;
 
             }
-            catch(Exception ex)
+            catch
             {
                 // log error
 

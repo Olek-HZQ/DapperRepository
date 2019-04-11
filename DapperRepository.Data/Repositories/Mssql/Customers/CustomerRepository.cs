@@ -224,9 +224,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
 
                     builder.Append("ORDER BY c.Id DESC;");
 
-                    SqlMapper.GridReader multi = session.Connection.QueryMultiple(builder.ToString(), parameters, session.Transaction, commandType: CommandType.Text);
-
-                    customers = multi.Read<CustomerDtoModelForPage>().AsEnumerable();
+                    customers = session.Connection.Query<CustomerDtoModelForPage>(builder.ToString(), parameters, session.Transaction, commandType: CommandType.Text);
                 }
 
                 //session.Commit();

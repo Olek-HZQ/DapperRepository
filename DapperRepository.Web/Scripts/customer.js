@@ -68,18 +68,18 @@ $('#btn-search').click(function () {
     $('#span-search-username').html('');
     $('#span-search-email').html('');
 
-    var regSearchUsername = /[\u4e00-\u9fa5_a-zA-Z0-9_]{3,30}/;
+    var regSearchUsername = /[\u4e00-\u9fa5_a-zA-Z0-9_]{2,30}/;
     var searchUsername = $.trim($('#search-username').val());
     if (searchUsername !== '' && !regSearchUsername.test(searchUsername)) {
-        $('#span-search-username').html('The search username range of length from 3 characters to 30.');
+        $('#span-search-username').html('The search username range of length from 2 characters to 30.');
         $('#search-username').focus();
         return false;
     }
 
-    var regSearchEmail = /[\u4e00-\u9fa5_a-zA-Z0-9_]{3,64}/;
+    var regSearchEmail = /[\u4e00-\u9fa5_a-zA-Z0-9_]{2,64}/;
     var searchEmail = $.trim($('#search-email').val().trim());
     if (searchEmail !== '' && !regSearchEmail.test(searchEmail)) {
-        $('#span-search-email').html('The search email range of length from 3 characters to 64.');
+        $('#span-search-email').html('The search email range of length from 2 characters to 64.');
         $('#search-email').focus();
         return false;
     }
