@@ -22,28 +22,18 @@ namespace DapperRepository.Web.Controllers
             _config = config;
         }
 
-        public ActionResult Index()
+        public ActionResult List()
         {
-            var customerRoles = _customerRoleService.GetCustomerRoles().Select(x => new SelectListItem
-            {
-                Text = x.Name,
-                Value = x.Id.ToString()
-            }).ToList();
-
-            CustomerModel model = new CustomerModel
-            {
-                AvailableRoles = customerRoles
-            };
-
             ViewBag.DbSource = _config.ActivedDbTypeName;
 
-            return View(model);
+            return View();
         }
 
+        [HttpGet]
         public ActionResult CustomerList(int pageIndex, int pageSize, string username, string email)
         {
             int total;
-            var customers = _customerService.GetPagedCustomers(out total, username, email, pageIndex - 1, pageSize, _config.ActivedDbTypeName == ConnKeyConstants.Mssql);
+            var customers = _customerService.GetPagedCustomers(out total, username, email, pageIndex - 1, pageSize, (!string.IsNullOrEmpty(_config.ActivedDbTypeName) && _config.ActivedDbTypeName == ConnKeyConstants.Mssql));
 
             var customerRoles = _customerRoleService.GetCustomerRoles();
 
@@ -62,131 +52,62 @@ namespace DapperRepository.Web.Controllers
                     RoleName = roleName,
                     Email = x.Email,
                     Active = x.Active,
-                    CreationTime = x.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    CreationTime = x.CreationTime.ToString("yyyy-MM-dd")
                 };
                 return model;
             });
 
-            return Json(new { rows = result, total }, JsonRequestBehavior.AllowGet);
+            return Json(new { code = 0, data = result, count = total }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult Create()
+        public ActionResult PopCustomer(string viewName, int id = 0)
         {
-            var customerRoles = _customerRoleService.GetCustomerRoles().Select(x => new SelectListItem
-            {
-                Text = x.Name,
-                Value = x.Id.ToString()
-            }).ToList();
+            CustomerModel model = new CustomerModel();
 
-            CustomerModel model = new CustomerModel
-            {
-                AvailableRoles = customerRoles
-            };
+            ViewBag.ViewName = viewName;
 
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(CustomerModel model)
-        {
-            if (ModelState.IsValid)
+            if (id > 0)
             {
-                Customer customer = new Customer
+                CustomerDtoModel customer = _customerService.GetCustomerBy(id);
+
+                if (customer == null)
                 {
-                    Username = model.Username,
-                    Email = model.Email,
-                    Active = model.Active,
-                    CreationTime = DateTime.Now
-                };
+                    return RedirectToAction("List");
+                }
 
-                _customerService.InsertCustomer(customer, model.RoleId);
+                model.Id = customer.Id;
+                model.Username = customer.Username;
+                model.Email = customer.Email;
+                model.Active = customer.Active;
+
+                model.AvailableRoles = _customerRoleService.GetCustomerRoles().Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name,
+                    Selected = x.Id == customer.CustomerRole.Id
+                }).ToList();
             }
-            return RedirectToAction("Index");
-        }
-
-        public ActionResult EditModal(int id)
-        {
-            CustomerDtoModel customer = _customerService.GetCustomerBy(id);
-            if (customer == null)
-                return RedirectToAction("Index");
-
-            var customerRoles = _customerRoleService.GetCustomerRoles().Select(x => new SelectListItem
+            else
             {
-                Text = x.Name,
-                Value = x.Id.ToString(),
-                Selected = x.Id == customer.CustomerRole.Id
-            }).ToList();
+                model.AvailableRoles = _customerRoleService.GetCustomerRoles().Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name
+                }).ToList();
+            }
 
-            CustomerModel model = new CustomerModel
-            {
-                Id = customer.Id,
-                Username = customer.Username,
-                Email = customer.Email,
-                Active = customer.Active,
-                CreationTime = customer.CreationTime,
-                RoleId = customer.CustomerRole.Id,
-                AvailableRoles = customerRoles
-            };
-
-            return View(model);
-        }
-
-        public ActionResult Edit(int id)
-        {
-            CustomerDtoModel customer = _customerService.GetCustomerBy(id);
-            if (customer == null)
-                return RedirectToAction("Index");
-
-            var customerRoles = _customerRoleService.GetCustomerRoles().Select(x => new SelectListItem
-            {
-                Text = x.Name,
-                Value = x.Id.ToString(),
-                Selected = x.Id == customer.CustomerRole.Id
-            }).ToList();
-
-            CustomerModel model = new CustomerModel
-            {
-                Id = customer.Id,
-                Username = customer.Username,
-                Email = customer.Email,
-                Active = customer.Active,
-                CreationTime = customer.CreationTime,
-                RoleId = customer.CustomerRole.Id,
-                AvailableRoles = customerRoles
-            };
-
-            return View(model);
+            return PartialView("_PopCustomer", model);
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(CustomerModel model)
-        {
-            Customer customer = _customerService.GetCustomerById(model.Id);
-            if (customer == null)
-                return RedirectToAction("Index");
-
-            if (ModelState.IsValid)
-            {
-                customer.Username = model.Username;
-                customer.Email = model.Email;
-                customer.Active = model.Active;
-
-                _customerService.UpdateCustomer(customer, model.RoleId);
-            }
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
-        public ActionResult AddCustomer(CustomerModel model)
+        public ActionResult CreateCustomer(CustomerModel model)
         {
             try
             {
                 Customer customer = new Customer
                 {
-                    Username = model.Username,
-                    Email = model.Email,
+                    Username = model.Username.Trim(),
+                    Email = model.Email.Trim(),
                     Active = model.Active,
                     CreationTime = DateTime.Now
                 };
@@ -197,38 +118,44 @@ namespace DapperRepository.Web.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = ex.Message });
+                return Json(new { status = false, msg = "added failed:" + ex.Message });
+
             }
         }
 
         [HttpPost]
-        public ActionResult UpdateCustomer(CustomerModel model)
+        public ActionResult EditCustomer(CustomerModel model)
         {
             Customer customer = _customerService.GetCustomerById(model.Id);
+
             if (customer == null)
-                return Json(new { status = false, msg = "No customer found with the specified id" });
+            {
+                return Json(new { status = false, msg = "no customer found with the specified id" });
+            }
 
             try
             {
-                customer.Username = model.Username;
-                customer.Email = model.Email;
+                customer.Username = model.Username.Trim();
+                customer.Email = model.Email.Trim();
                 customer.Active = model.Active;
+
                 int result = _customerService.UpdateCustomer(customer, model.RoleId);
 
-                return Json(new { status = result, msg = result > 0 ? "updated successfully" : "updated failed" });
+                return Json(new { status = result, msg = result > 0 ? "edited successfully" : "edited failed" });
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = ex.Message });
+                return Json(new { status = false, msg = "edited failed:" + ex.Message });
+
             }
         }
 
         [HttpPost]
-        public ActionResult Delete(int id)
+        public ActionResult DeleteCustomer(int id)
         {
             Customer customer = _customerService.GetCustomerById(id);
             if (customer == null)
-                return Json(new { status = false, msg = "No customer found with the specified id" });
+                return Json(new { status = false, msg = "no customer found with the specified id" });
 
             try
             {
@@ -237,7 +164,7 @@ namespace DapperRepository.Web.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = ex.Message });
+                return Json(new { status = false, msg = "deleted failed:" + ex.Message });
             }
         }
     }
