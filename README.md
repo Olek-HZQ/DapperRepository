@@ -3,6 +3,7 @@ Introduction to Dapper and Repository Pattern Framework in MVC
 
 ## 1.	Target Framework
 master: .Net Framework 4.5.1
+
 CoreDapperRepository: .Net Core 2.1
 
 ## 1.	Foreword
