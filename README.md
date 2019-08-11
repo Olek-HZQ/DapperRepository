@@ -101,6 +101,7 @@ QQ Email: `875755898@qq.com`
 Google Email:`huangzhongqiu25@gmail.com`
 
 My personal WeChat applet：
+
 ![](http://gitfile.coolwecool.com/dapperrepository/qrcode.jpg)
 
 Demo Address: http://dapperrepository.coolwecool.com
