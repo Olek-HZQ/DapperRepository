@@ -104,6 +104,6 @@ My personal WeChat applet：
 
 ![](http://gitfile.coolwecool.com/dapperrepository/qrcode.jpg)
 
-Demo Address: http://dapperrepository.coolwecool.com
+Demo Address: http://dp.coolwecool.com
 
 All contents of this package are licensed under the [MIT license](https://opensource.org/licenses/MIT).
