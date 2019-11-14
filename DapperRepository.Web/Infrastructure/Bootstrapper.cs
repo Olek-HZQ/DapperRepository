@@ -45,7 +45,7 @@ namespace DapperRepository.Web.Infrastructure
                         RegisterRepository(builder, ConnKeyConstants.Mssql);
 
                         // Services
-                        RegisterSevice(builder, ConnKeyConstants.Mssql);
+                        RegisterService(builder, ConnKeyConstants.Mssql);
 
                         RegisterMore(builder, b =>
                         {
@@ -60,7 +60,7 @@ namespace DapperRepository.Web.Infrastructure
                         RegisterRepository(builder, ConnKeyConstants.Mysql);
 
                         // Services
-                        RegisterSevice(builder, ConnKeyConstants.Mysql);
+                        RegisterService(builder, ConnKeyConstants.Mysql);
 
                         break;
 
@@ -88,7 +88,7 @@ namespace DapperRepository.Web.Infrastructure
                             .InstancePerLifetimeScope();
         }
 
-        private static void RegisterSevice(ContainerBuilder builder, string registerDbTypeName)
+        private static void RegisterService(ContainerBuilder builder, string registerDbTypeName)
         {
             string namespacePrefix = string.Format("DapperRepository.Services.{0}", registerDbTypeName);
 
@@ -104,8 +104,7 @@ namespace DapperRepository.Web.Infrastructure
         /// </summary>
         private static void RegisterMore(ContainerBuilder builder, Action<ContainerBuilder> register = null)
         {
-            if (register != null)
-                register(builder);
+            register?.Invoke(builder);
         }
     }
 }
