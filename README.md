@@ -28,7 +28,7 @@ DapperRepository.Web: client operation
 
      
  ## 3.	Adapt to the design idea of multi-instance database multi-instance
-![](http://gitfile.coolwecool.com/dapperrepository/1.jpg)
+![](http://gitfile.coolwecool.com/dp/1.jpg)
 Generic interface `IRepository<T>`: the most basic CURD
     
 Instance interface `ICustomerRepository`: inherits ICustomerRepository and extensions, generic interface (for different database types)
@@ -47,7 +47,7 @@ Concrete instance class `CustomerRepository`: implement generic interface `Irepo
  ## 5.	Dependency injection Autofac
 Dependency injection uses autofac, which is mainly used for decoupling between modules and project maintainability.
  
-![](http://gitfile.coolwecool.com/dapperrepository/2.jpg)
+![](http://gitfile.coolwecool.com/dp/2.jpg)
  
 Here I am not using a single injection one by one, but through the agreement to find the unified injection after reflection, I also wrote an extension registration to support the unified registration of other examples that are still needed.
  
@@ -56,7 +56,7 @@ Here I am not using a single injection one by one, but through the agreement to 
 
 This static class defines the database type key and the database connection string key. 
 
-![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
+![](http://gitfile.coolwecool.com/dp/3.jpg)
  
 The default implementation is in the instance generic class MySqlRepositoryBase<T>, such as:
  
@@ -64,7 +64,7 @@ The default implementation is in the instance generic class MySqlRepositoryBase<
  
 Currently defined database type is mysql, database connection string and data table name, note that the DataType property modifier is sealed, so the subclass can not be override, because the convention is to use mysql, if you need to switch the current data instance, you need to re The class overrides ConnStrKey, and the TableName is the same, such as:
 
-![](http://gitfile.coolwecool.com/dapperrepository/5.jpg)
+![](http://gitfile.coolwecool.com/dp/5.jpg)
  
 This makes it possible to switch database instances (specifically based on business needs). Of course, this change is only valid for the current instance (so the framework can implement the current single database type and multiple database instances)
  
@@ -72,11 +72,11 @@ This makes it possible to switch database instances (specifically based on busin
 
 Just modify it to switch the database type of the current project.
 
-![](http://gitfile.coolwecool.com/dapperrepository/6.jpg) 
+![](http://gitfile.coolwecool.com/dp/6.jpg) 
 
 This should be consistent with the defined key (convention)
 
-![](http://gitfile.coolwecool.com/dapperrepository/3.jpg)
+![](http://gitfile.coolwecool.com/dp/3.jpg)
 
 ### Modify the database connection string
 
@@ -102,7 +102,7 @@ Google Email:`huangzhongqiu25@gmail.com`
 
 My personal WeChat applet：
 
-![](http://gitfile.coolwecool.com/dapperrepository/qrcode.jpg)
+![](http://gitfile.coolwecool.com/dp/qrcode.jpg)
 
 Demo Address: http://dp.coolwecool.com
 
