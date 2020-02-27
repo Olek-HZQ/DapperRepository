@@ -1,5 +1,0 @@
-﻿{
-    "MssqlMasterKey": "Data Source=.;Initial Catalog=DapperRepositoryDb;Integrated Security=True;",
-    "MysqlMasterKey": "your mysql connection string",
-    "LocalMysqlMasterKey": "you local mysql connection string"
-}

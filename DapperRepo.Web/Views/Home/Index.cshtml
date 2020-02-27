@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+<input type="text" id="insert-num" class="form-control" />
+<input type="button" class="btn btn-primary" id="insert-sample-customer" value="Insert Sample Data" />
+<script>
+    $(function() {
+        $('#insert-sample-customer').click(function () {
+            var num = $('#insert-num').val();
+
+            $.ajax({
+                url: "/Home/InsertSampleData",
+                type: "POST",
+                data: { num: num }
+            }).done(function(data) {
+                console.log("ExecuteResult：" + data.ExecuteResult);
+                console.log("ExecuteTime：" + data.ExecuteTime);
+            }).fail(function(xhr) {
+                console.log(xhr.message);
+            });
+        });
+    });
+</script>

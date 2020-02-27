@@ -1,0 +1,30 @@
+﻿@model DapperRepo.Web.Models.Customers.CustomerModel
+@{
+    Layout = "";
+}
+
+<input type="hidden" asp-for="@Model.Id" />
+<div class="layui-form-item">
+    <label asp-for="Username" class="layui-form-label"></label>
+    <div class="layui-input-block">
+        <input type="text" class="layui-input" asp-for="Username" placeholder="Please input your name">
+    </div>
+</div>
+<div class="layui-form-item">
+    <label asp-for="Email" class="layui-form-label"></label>
+    <div class="layui-input-block">
+        <input type="text" class="layui-input" asp-for="Email" placeholder="Please input your email address">
+    </div>
+</div>
+
+<div class="layui-form-item">
+    <label asp-for="Active" class="layui-form-label"></label>
+    <div class="layui-input-block">
+        <input type="checkbox" asp-for="Active" lay-skin="switch" lay-text="YES|NO">
+    </div>
+</div>
+<div class="layui-form-item">
+    <div class="layui-input-block">
+        <button type="button" class="layui-btn" id="btn-edit">Edit</button>
+    </div>
+</div>

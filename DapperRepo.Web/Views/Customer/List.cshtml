@@ -1,0 +1,38 @@
+﻿@{
+    ViewBag.Title = "CustomerList";
+}
+
+<style>
+    .layui-table-tool {
+        display: none;
+    }
+</style>
+
+<form class="layui-form layui-form-pane">
+    <div class="layui-form-item">
+        <label class="layui-form-label">Username</label>
+        <div class="layui-input-block">
+            <input type="text" id="search-name" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">Email</label>
+        <div class="layui-input-block">
+            <input type="text" id="search-email" class="layui-input">
+        </div>
+    </div>
+</form>
+
+<div>
+    <button class="layui-btn" onclick="add()">Add Customer</button>
+    <button id="btn-search" class="layui-btn">Search</button>
+</div>
+
+<table class="layui-hide" id="customer-table" lay-filter="customer"></table>
+
+<script type="text/html" id="customer-right-bar">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">Edit</a>
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">Delete</a>
+</script>
+
+<script src="~/js/customer-list.js"></script>
