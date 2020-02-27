@@ -2,13 +2,15 @@ Introduction to Dapper and Repository Pattern Framework in MVC
 =
 
 ## 1.	Target Framework
-Branches:
+### Branches:
 
-master: .Net Framework 4.5.1
+## master: .Net Framework 4.5.1
 
-CoreDapperRepository: .Net Core 2.1
+## CoreDapperRepository: .Net Core 2.1
 
-dev: .Net Core 3.1
+## dev: .Net Core 3.1
+
+## I will update the relevant instructions after the project migration.
 
 ## 1.	Foreword
 The framework is based on the underlying framework of the dapper.net repository and follows the SOLID design principles. At the same time, it supports multiple database instances of different types of databases (mssql, mysql, oracle ...) and multiple databases coexisting with the same type of database. Simply modify the configuration file to move it at will. Using the currently popular tools (dependency injection: autofac, cache: redis, etc.), the underlying package encapsulates the basic CURD operations.
@@ -106,6 +108,14 @@ My personal WeChat applet：
 
 ![](http://gitfile.coolwecool.com/dp/qrcode.jpg)
 
-Demo Address: http://dapperrepository.poetrysharing.com
+Demo Address: 
+
+If you are from China or a country close to China,please visit:
+
+http://dapperrepository.poetrysharing.com
+
+Others:
+
+http://dp.coolwecool.com
 
 All contents of this package are licensed under the [MIT license](https://opensource.org/licenses/MIT).
