@@ -16,7 +16,7 @@ layui.use(["table", "form", "layer"], function () {
         elem: "#customer-table",
         id: "customer-id",
         toolbar: "#customer-toolbar",
-        url: "/Customer/CustomerList",
+        url: "/Customer/LayuiCustomerList",
         request: {
             pageName: "PageIndex",
             limitName: "PageSize"

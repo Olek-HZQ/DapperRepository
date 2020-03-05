@@ -18,15 +18,39 @@ namespace DapperRepo.Web.Controllers
             _customerService = customerService;
         }
 
+        public IActionResult Index()
+        {
+            return View();
+        }
+
         public IActionResult List()
         {
             return View();
         }
 
-        [HttpGet]
-        public async Task<ActionResult> CustomerList(SearchCustomerModel model)
+        [HttpPost]
+        public async Task<ActionResult> BootstrapCustomerList(SearchCustomerModel model)
         {
+            var result = await _customerService.GetPagedCustomers(model.Username, model.Email, model.PageIndex - 1, model.PageSize);
 
+            List<CustomerModel> customers = result.Item2.Select(x =>
+            {
+                CustomerModel customerModel = new CustomerModel
+                {
+                    Id = x.Id,
+                    Username = x.Username,
+                    Email = x.Email,
+                    Active = x.Active,
+                    CreationTime = x.CreationTime.ToString("yyyy-MM-dd")
+                };
+                return customerModel;
+            }).ToList();
+
+            return Json(new { rows = customers, total = result.Item1 });
+        }
+        
+        public async Task<ActionResult> LayuiCustomerList(SearchCustomerModel model)
+        {
             var result = await _customerService.GetPagedCustomers(model.Username, model.Email, model.PageIndex - 1, model.PageSize);
 
             List<CustomerModel> customers = result.Item2.Select(x =>
@@ -44,6 +68,7 @@ namespace DapperRepo.Web.Controllers
 
             return Json(new { code = 0, data = customers, count = result.Item1 });
         }
+
 
         public async Task<ActionResult> PopCustomer(string viewName, int id = 0)
         {
@@ -84,13 +109,34 @@ namespace DapperRepo.Web.Controllers
 
                 int result = await _customerService.InsertCustomerAsync(customer);
 
-                return Json(new { status = result, msg = result > 0 ? "added successfully" : "added failed" });
+                return Json(new { status = result, msg = result > 0 ? "Added successfully" : "Added failed" });
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = "added failed:" + ex.Message });
+                return Json(new { status = false, msg = "Added failed:" + ex.Message });
 
             }
+        }
+
+        public async Task<ActionResult> Edit(int id)
+        {
+            Customer customer = await _customerService.GetCustomerByIdAsync(id);
+
+            if (customer == null)
+            {
+                return RedirectToAction("Index");
+            }
+
+            CustomerModel model = new CustomerModel
+            {
+                Id = customer.Id,
+                Username = customer.Username,
+                Email = customer.Email,
+                Active = customer.Active,
+                CreationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+
+            return PartialView("_EditModal", model);
         }
 
         [HttpPost]
@@ -100,7 +146,7 @@ namespace DapperRepo.Web.Controllers
 
             if (customer == null)
             {
-                return Json(new { status = false, msg = "no customer found with the specified id" });
+                return Json(new { status = false, msg = "No customer found with the specified id" });
             }
 
             try
@@ -111,11 +157,11 @@ namespace DapperRepo.Web.Controllers
 
                 bool result = await _customerService.UpdateCustomerAsync(customer);
 
-                return Json(new { status = result, msg = result ? "edited successfully" : "edited failed" });
+                return Json(new { status = result, msg = result ? "Edited successfully" : "Edited failed" });
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = "edited failed:" + ex.Message });
+                return Json(new { status = false, msg = "Edited failed:" + ex.Message });
 
             }
         }
@@ -125,16 +171,16 @@ namespace DapperRepo.Web.Controllers
         {
             Customer customer = await _customerService.GetCustomerByIdAsync(id);
             if (customer == null)
-                return Json(new { status = false, msg = "no customer found with the specified id" });
+                return Json(new { status = false, msg = "No customer found with the specified id" });
 
             try
             {
                 bool result = await _customerService.DeleteCustomerAsync(customer);
-                return Json(new { status = result, msg = result ? "deleted successfully" : "deleted failed" });
+                return Json(new { status = result, msg = result ? "Deleted successfully" : "Deleted failed" });
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = "deleted failed:" + ex.Message });
+                return Json(new { status = false, msg = "Deleted failed:" + ex.Message });
             }
         }
     }

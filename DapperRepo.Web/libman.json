@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "bootstrap-table@1.16.0",
+      "destination": "wwwroot/lib/bootstrap-table/",
+      "files": [
+        "bootstrap-table.min.js",
+        "locale/bootstrap-table-zh-CN.js",
+        "locale/bootstrap-table-zh-CN.min.js",
+        "bootstrap-table.min.css"
+      ]
+    },
+    {
+      "library": "font-awesome@5.12.1",
+      "destination": "wwwroot/lib/font-awesome/"
+    },
+    {
+      "library": "jquery-confirm@3.3.4",
+      "destination": "wwwroot/lib/jquery-confirm/",
+      "files": [
+        "jquery-confirm.min.js",
+        "jquery-confirm.min.css"
+      ]
+    }
+  ]
+}
