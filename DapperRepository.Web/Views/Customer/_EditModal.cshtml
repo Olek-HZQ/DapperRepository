@@ -1,0 +1,28 @@
+﻿@model DapperRepo.Web.Models.Customers.CustomerModel
+
+@Html.Partial("Modals/_ModalHeader", "Edit Customer")
+<form id="edit-customer-form">
+    <div class="modal-body">
+        <input type="hidden" value="@Model.Id" id="Id" name="Id" />
+        <div class="form-group">
+            <label class="col-md-3">Username</label>
+            <div class="col-md-9">
+                <input id="Username" name="Username" class="form-control" type="text" value="@Model.Username" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3">Email</label>
+            <div class="col-md-9">
+                <input id="Email" name="Email" class="form-control" type="email" value="@Model.Email" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-3">Active</label>
+            <div class="col-md-9">
+                <input id="Active" name="Active" type="checkbox" @(Model.Active ? "checked=checked" : "")>
+            </div>
+        </div>
+    </div>
+    @Html.Partial("Modals/_ModalFooter")
+</form>
+<script src="~/Scripts/view-resources/customer/editModal.js"></script>

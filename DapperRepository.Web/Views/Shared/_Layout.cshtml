@@ -4,19 +4,53 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewBag.Title - Dapper.Net repository pattern demo</title>
-    <link href="~/Content/layui/css/layui.css" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="~/Content/layui/layui.js"></script>
+    <link href="~/Content/lib/layui/css/layui.css" rel="stylesheet" />
+    <link href="~/Content/lib/jquery-confirm/jquery-confirm.min.css" rel="stylesheet" />
+    <link href="~/Content/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/lib/bootstrap-table/bootstrap-table.min.css" rel="stylesheet" />
+    <link href="~/Content/lib/font-awesome/css/all.min.css" rel="stylesheet" />
+    <link href="~/Content/css/site.css" rel="stylesheet" />
+
+    <script src="~/Content/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/Content/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/Content/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/site.js"></script>
 </head>
 <body>
-    <div class="layui-main">
-        <h1 style="text-align: center; color: #ffffff; background-color: #c0c0c0;">Demo based on Dapper.Net repository pattern</h1>
-        <br />
-        @RenderBody()
-        <br />
-        <footer>
-            <h3 style="text-align: center;">@DateTime.Now.ToString("yyyy-MM-dd")</h3>
-        </footer>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DapperRepo</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="@Url.Action("Index","Customer",new{area=""})">Bootstrap UI</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="@Url.Action("List","Customer",new{area=""})">Layui</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="https://github.com/Olek-HZQ/DapperRepository" target="_blank">GitHub Address</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            <h1 style="text-align: center; color: #ffffff; background-color: #c0c0c0;">Demo based on Dapper.Net repository pattern</h1>
+            <br />
+            @RenderBody()
+            @*<footer>
+                    <h3 style="text-align: center;">Author: olek-hzq Email: 875755898@qq.com</h3>
+                </footer>*@
+        </main>
     </div>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

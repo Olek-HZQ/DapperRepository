@@ -1,14 +1,12 @@
 ﻿using DapperRepository.Core.Data;
 using DapperRepository.Core.Domain;
+using SqlKata;
 
 namespace DapperRepository.Data
 {
     public abstract class RepositoryDataTypeBase
     {
-        protected IDbSession DbSession
-        {
-            get { return SessionFactory.CreateSession(DataType, ConnStrKey); }
-        }
+        protected IDbSession DbSession => SessionFactory.CreateSession(DataType, ConnStrKey);
 
         /// <summary>
         /// 当前数据库连接串的key
@@ -24,5 +22,7 @@ namespace DapperRepository.Data
         /// 数据表名(默认类名，如果不是，需要在子类重写)
         /// </summary>
         protected abstract string TableName { get; }
+
+        protected abstract SqlResult GetSqlResult(Query query);
     }
 }

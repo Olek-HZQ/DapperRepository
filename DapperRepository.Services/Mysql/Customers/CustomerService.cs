@@ -1,113 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
-using DapperRepository.Core;
-using DapperRepository.Core.Cache;
-using DapperRepository.Core.Constants;
+using System.Threading.Tasks;
 using DapperRepository.Core.Domain.Customers;
 using DapperRepository.Data.Repositories.BaseInterfaces;
 using DapperRepository.Services.BaseInterfaces;
 
 namespace DapperRepository.Services.Mysql.Customers
 {
-    public class CustomerService : ICustomerService, IMysqlService
+    public class CustomerService : ICustomerService
     {
-        private readonly ICustomerRepository _repository;
-        private readonly ICacheManager _cacheManager;
+        private readonly ICustomerRepository _customerRepository;
 
-        public CustomerService(ICustomerRepository repository, ICacheManager cacheManager)
+        public CustomerService(ICustomerRepository customerRepository)
         {
-            _repository = repository;
-            _cacheManager = cacheManager;
+            _customerRepository = customerRepository;
         }
 
-        public Customer GetCustomerById(int customerId)
+        public async Task<Customer> GetCustomerByIdAsync(int id)
         {
-            if (customerId == 0)
+            if (id == 0)
                 return null;
 
-            return _repository.GetCustomerById(customerId);
+            return await _customerRepository.GetCustomerByIdAsync(id);
         }
 
-        public CustomerDtoModel GetCustomerBy(int id)
+        public Task<Customer> GetCustomerByAsync(string name, string email)
         {
-            if (id <= 0)
-                return null;
-
-            return _repository.GetCustomerBy(id);
+            return _customerRepository.GetCustomerByAsync(name, email);
         }
 
-        public int InsertList(out long time, List<Customer> customers, int roleId)
+        public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
         {
-            var result = _repository.InsertList(out time, customers, roleId);
-            if (result > 0)
-            {
-                _cacheManager.RemoveByPattern(string.Format(CustomerDefaults.CustomerCountPatternCacheKey, ConnKeyConstants.Mysql));
-            }
-
-            return result;
+            return await _customerRepository.GetAllCustomersAsync();
         }
 
-        public IEnumerable<CustomerDtoModel> GetAllCustomers()
+        public async Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize)
         {
-            return _repository.GetAllCustomers();
+            return await _customerRepository.GetPagedCustomers(username, email, pageIndex, pageSize);
         }
 
-        public IEnumerable<CustomerDtoModelForPage> GetPagedCustomers(out int totalCount, string username = "", string email = "", int pageIndex = 0, int pageSize = int.MaxValue, bool useStoredProcedure = false)
+        public async Task<int> InsertCustomerAsync(Customer customer)
         {
-            int total;
-
-            if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(email))
-            {
-                // 缓存无搜索条件的总记录数
-                total = _cacheManager.Get(string.Format(CustomerDefaults.CustomerTotalCountCacheKey, ConnKeyConstants.Mysql), 1440, () => _repository.GetCustomerCount());
-            }
-            else
-            {
-                string filterKey = string.Format(CustomerDefaults.CustomerFilterCountCacheKey, ConnKeyConstants.Mysql, CommonHelper.GetHashString(username + email));
-                total = _cacheManager.Get(filterKey, 1440, () => _repository.GetCustomerCount(username, email));
-            }
-
-            totalCount = total;
-
-            return _repository.GetPagedCustomers(total, username, email, pageIndex, pageSize, useStoredProcedure);
+            return await _customerRepository.InsertCustomerAsync(customer);
         }
 
-        public int InsertCustomer(Customer customer, int roleId)
+        public async Task<int> InsertCustomerListAsync(List<Customer> customers)
         {
-            if (customer == null)
-                throw new ArgumentNullException("customer");
-
-            var result = _repository.InsertCustomer(customer, roleId);
-
-            if (result > 0)
-            {
-                _cacheManager.RemoveByPattern(string.Format(CustomerDefaults.CustomerCountPatternCacheKey, ConnKeyConstants.Mysql));
-            }
-
-            return result;
+            return await _customerRepository.InsertCustomerListAsync(customers);
         }
 
-        public int UpdateCustomer(Customer customer, int roleId)
+        public async Task<bool> UpdateCustomerAsync(Customer customer)
         {
-            if (customer == null)
-                throw new ArgumentNullException("customer");
-
-            return _repository.UpdateCustomer(customer, roleId);
+            return await _customerRepository.UpdateCustomerAsync(customer);
         }
 
-        public bool DeleteCustomer(Customer customer)
+        public async Task<bool> DeleteCustomerAsync(Customer customer)
         {
-            if (customer == null)
-                throw new ArgumentNullException("customer");
-
-            var result = _repository.Delete(customer.Id);
-
-            if (result)
-            {
-                _cacheManager.RemoveByPattern(string.Format(CustomerDefaults.CustomerCountPatternCacheKey, ConnKeyConstants.Mysql));
-            }
-
-            return result;
+            return await _customerRepository.DeleteCustomerAsync(customer);
         }
     }
 }

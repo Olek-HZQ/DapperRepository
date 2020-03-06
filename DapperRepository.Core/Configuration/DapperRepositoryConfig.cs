@@ -10,10 +10,11 @@ namespace DapperRepository.Core.Configuration
         {
             var config = new DapperRepositoryConfig();
 
-            var startupNode = section.SelectSingleNode("CurrentActivedDbType");
-            config.ActivedDbTypeName = GetString(startupNode, "ActivedDbTypeName");
+            var dbTypeNode = section.SelectSingleNode("CurrentDbTypeName");
+            config.CurrentDbTypeName = GetString(dbTypeNode, "CurrentDbTypeName");
 
             var redisCachingNode = section.SelectSingleNode("RedisCaching");
+            config.RedisEnabled= GetBool(redisCachingNode, "Enabled");
             config.RedisCachingConnectionString = GetString(redisCachingNode, "ConnectionString");
 
             return config;
@@ -24,16 +25,23 @@ namespace DapperRepository.Core.Configuration
             return SetByXElement(node, attrName, Convert.ToString);
         }
 
+        private static bool GetBool(XmlNode node, string attrName)
+        {
+            return SetByXElement(node, attrName, Convert.ToBoolean);
+        }
+
         private static T SetByXElement<T>(XmlNode node, string attrName, Func<string, T> converter)
         {
-            if (node == null || node.Attributes == null) return default(T);
+            if (node?.Attributes == null) return default(T);
             var attr = node.Attributes[attrName];
             if (attr == null) return default(T);
             var attrVal = attr.Value;
             return converter(attrVal);
         }
 
-        public string ActivedDbTypeName { get; set; }
+        public bool RedisEnabled { get; set; }
+
+        public string CurrentDbTypeName { get; set; }
 
         /// <summary>
         /// Redis connection string. Used when Redis caching is enabled

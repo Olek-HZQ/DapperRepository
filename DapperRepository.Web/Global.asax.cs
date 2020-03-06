@@ -9,9 +9,8 @@ namespace DapperRepository.Web
     {
         protected void Application_Start(object sender, EventArgs e)
         {
-            RouteProvider.RegisterRoutes(RouteTable.Routes);
-
             Bootstrapper.Run();
+            RouteProvider.RegisterRoutes(RouteTable.Routes);
         }
 
         protected void Session_Start(object sender, EventArgs e)

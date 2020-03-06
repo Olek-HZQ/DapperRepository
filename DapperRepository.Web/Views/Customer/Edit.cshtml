@@ -1,61 +1,25 @@
-﻿@model DapperRepository.Web.Models.Customers.CustomerModel
-@{
-    ViewBag.Title = "Edit";
-}
+﻿@model DapperRepo.Web.Models.Customers.CustomerModel
 
-<h2>Edit Data</h2>
-@using (Html.BeginForm("Edit", "Customer", FormMethod.Post))
-{
-    @Html.HiddenFor(x => x.Id)
-    @Html.AntiForgeryToken()
-    <div class="form-horizontal">
-        <div class="panel-group">
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    <div class="form-group">
-                        <div class="col-md-3">
-                            @Html.LabelFor(model => model.Username)
-                        </div>
-                        <div class="col-md-9">
-                            @Html.TextBoxFor(model => model.Username, new {@class = "form-control"})
-                            @Html.ValidationMessageFor(model => model.Username)
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-md-3">
-                            @Html.LabelFor(model => model.Email)
-                        </div>
-                        <div class="col-md-9">
-                            @Html.TextBoxFor(model => model.Email, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(model => model.Email)
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-md-3">
-                            @Html.LabelFor(model => model.RoleId)
-                        </div>
-                        <div class="col-md-9">
-                            @Html.DropDownListFor(model => model.RoleId, Model.AvailableRoles, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(model => model.RoleId)
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-md-3">
-                            @Html.LabelFor(model => model.Active)
-                        </div>
-                        <div class="col-md-9">
-                            @Html.EditorFor(model => model.Active, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(model => model.Active)
-                        </div>
-                    </div>
-                    <div style="text-align: center;">
-                        <button type="submit" name="save" class="btn btn-success">
-                            Save
-                        </button>
-                        <a href="@Url.Action("Index")" class="btn btn-default">BackToList</a>
-                    </div>
-                </div>
-            </div>
+
+<form id="edit-customer-form">
+    <input type="hidden" value="@Model.Id" id="Id" name="Id" />
+    <div class="form-group">
+        <label class="col-md-3">Username</label>
+        <div class="col-md-9">
+            <input id="Username" name="Username" class="form-control" type="text" value="@Model.Username">
         </div>
     </div>
-}
+    <div class="form-group">
+        <label class="col-md-3">Email</label>
+        <div class="col-md-9">
+            <input id="Email" name="Email" class="form-control" type="text" value="@Model.Email">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-3">Active</label>
+        <div class="col-md-9">
+            <input id="Active" name="Active" type="checkbox" @(Model.Active ? "checked=checked" : "")>
+        </div>
+    </div>
+</form>
+

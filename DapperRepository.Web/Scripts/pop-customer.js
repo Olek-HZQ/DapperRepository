@@ -18,22 +18,24 @@ $('#insert-sample-customer').click(function () {
 */
 
 var layer;
-layui.use(['layer', 'table', 'form'], function () {
+layui.use(["layer", "table", "form"], function () {
     layer = layui.layer;
 });
 
 $(function () {
-    $('#btn-create').click(function () {
+    $("#btn-create").click(function (e) {
+        e.preventDefault();
+
         var res = validate();
         if (!res) {
-            return false;
+            return;
         }
 
         var postData = {
-            Username: $.trim($('#Username').val()),
-            Email: $.trim($('#Email').val()),
-            RoleId: $('#RoleId').val(),
-            Active: $('#Active').is(":checked")
+            Username: $.trim($("#Username").val()),
+            Email: $.trim($("#Email").val()),
+            RoleId: $("#RoleId").val(),
+            Active: $("#Active").is(":checked")
         };
 
         $.ajax({
@@ -42,10 +44,10 @@ $(function () {
             data: postData
         }).done(function (data) {
             if (data.status) {
-                parent.layui.table.reload('customer-id', {
+                parent.layui.table.reload("customer-id", {
                     where: {
-                        Username: $.trim($('#search-name').val()),
-                        Email: $.trim($('#search-email').val())
+                        Username: $.trim($("#search-name").val()),
+                        Email: $.trim($("#search-email").val())
                     },
                     page: {
                         curr: 1
@@ -57,30 +59,32 @@ $(function () {
                 layer.msg(data.msg, {
                     time: 1500,
                     icon: 7,
-                    offset: ['40%', '40%']
+                    offset: ["40%", "40%"]
                 });
             }
         }).fail(function (xhr) {
             layer.msg(xhr.responseText, {
                 time: 1500,
                 icon: 2,
-                offset: ['40%', '40%']
+                offset: ["40%", "40%"]
             });
         });
     });
 
-    $('#btn-edit').click(function () {
+    $("#btn-edit").click(function (e) {
+        e.preventDefault();
+
         var res = validate();
         if (!res) {
-            return false;
+            return;
         }
 
         var postData = {
-            Id: $('#Id').val(),
-            Username: $.trim($('#Username').val()),
-            Email: $.trim($('#Email').val()),
-            RoleId: $('#RoleId').val(),
-            Active: $('#Active').is(":checked")
+            Id: $("#Id").val(),
+            Username: $.trim($("#Username").val()),
+            Email: $.trim($("#Email").val()),
+            RoleId: $("#RoleId").val(),
+            Active: $("#Active").is(":checked")
         };
 
         $.ajax({
@@ -92,10 +96,10 @@ $(function () {
                 if (data.NeedReloadHomePage) {
                     parent.parent.location.reload();
                 } else {
-                    parent.layui.table.reload('customer-id', {
+                    parent.layui.table.reload("customer-id", {
                         where: {
-                            Username: $.trim($('#search-name').val()),
-                            Email: $.trim($('#search-email').val())
+                            Username: $.trim($("#search-name").val()),
+                            Email: $.trim($("#search-email").val())
                         },
                         page: {
                             curr: 1
@@ -109,14 +113,14 @@ $(function () {
                 layer.msg(data.msg, {
                     time: 1500,
                     icon: 7,
-                    offset: ['40%', '40%']
+                    offset: ["40%", "40%"]
                 });
             }
         }).fail(function (xhr) {
             layer.msg(xhr.responseText, {
                 time: 1500,
                 icon: 2,
-                offset: ['40%', '40%']
+                offset: ["40%", "40%"]
             });
         });
     });
@@ -124,30 +128,30 @@ $(function () {
 
 function validate() {
 
-    if ($.trim($('#Username').val()) === "") {
-        layer.msg('Username is required', {
+    if ($.trim($("#Username").val()) === "") {
+        layer.msg("Username is required", {
             time: 1500,
             icon: 5,
-            offset: ['40%', '40%']
+            offset: ["40%", "40%"]
         });
         return false;
     }
 
-    if ($.trim($('#Email').val()) === "") {
-        layer.msg('Email is required', {
+    if ($.trim($("#Email").val()) === "") {
+        layer.msg("Email is required", {
             time: 1500,
             icon: 5,
-            offset: ['40%', '40%']
+            offset: ["40%", "40%"]
         });
         return false;
     }
 
     var reg = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-    if (!reg.test($('#Email').val().trim())) {
-        layer.msg('The Email format is incorrect.', {
+    if (!reg.test($("#Email").val().trim())) {
+        layer.msg("The Email format is incorrect.", {
             time: 1500,
             icon: 5,
-            offset: ['40%', '40%']
+            offset: ["40%", "40%"]
         });
         return false;
     }

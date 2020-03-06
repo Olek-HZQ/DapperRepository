@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div style="margin-bottom: 15px;" class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <h2 class="text-left">Author: olek-hzq</h2>
+    <h2 class="text-left">Email: 875755898@qq.com</h2>
+</div>
+<input type="number" id="insert-num" class="form-control" />
+<input type="button" style="margin-top: 5px;" class="btn btn-primary" id="insert-sample-customer" value="Insert Sample Data" />
+<script>
+    $(function() {
+        $('#insert-sample-customer').click(function (e) {
+            e.preventDefault();
+
+            var num = $('#insert-num').val();
+
+            if (parseInt(num) <= 0) {
+                return;
+            }
+
+            $.ajax({
+                url: "/Home/InsertSampleData",
+                type: "POST",
+                data: { num: num }
+            }).done(function(data) {
+                console.log("ExecuteResult：" + data.ExecuteResult);
+                console.log("ExecuteTime：" + data.ExecuteTime);
+            }).fail(function(xhr) {
+                console.log(xhr.message);
+            });
+        });
+    });
+</script>

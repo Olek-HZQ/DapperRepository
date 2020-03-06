@@ -1,10 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Data;
+﻿using System.Data;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 using Dapper;
-using DapperExtensions;
+using Dapper.Contrib.Extensions;
 using DapperRepository.Core;
 using DapperRepository.Core.Data;
 
@@ -12,235 +10,138 @@ namespace DapperRepository.Data
 {
     public abstract class RepositoryBase<T> : RepositoryDataTypeBase where T : BaseEntity
     {
-        /// <summary>
-        /// 根据主键获取一条数据
-        /// </summary>
-        /// <param name="sql">sql语句或者存储过程</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="buffered">是否缓冲查询数据，详细信息：https://dapper-tutorial.net/buffered </param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="commandType">命令类型（sql语句或是存储过程）</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>当前查询数据</returns>
-        public virtual T GetById(string sql, object param = null, bool buffered = true, int? commandTimeout = null, CommandType? commandType = null, bool useTransaction = false)
+        public virtual async Task<T> GetAsync(int id, bool useTransaction = false, int? commandTimeout = null)
         {
-            if (string.IsNullOrEmpty(sql))
+            if (id == 0)
                 return null;
 
             IDbSession session = DbSession;
 
-            T result = session.Connection.Query<T>(sql, param, null, buffered, commandTimeout, commandType).SingleOrDefault();
-
-            session.Dispose(); // 释放资源
-
-            return result;
-        }
-
-        /// <summary>
-        /// 根据相关条件获取一条数据
-        /// </summary>
-        /// <param name="sql">sql语句或者存储过程</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="buffered">是否缓冲查询数据，详细信息：https://dapper-tutorial.net/buffered </param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="commandType">命令类型（sql语句或是存储过程）</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>当前查询数据</returns>
-        public virtual T GetBy(string sql, object param = null, bool buffered = true, int? commandTimeout = null, CommandType? commandType = null, bool useTransaction = false)
-        {
-            if (string.IsNullOrEmpty(sql))
-                return null;
-
-            IDbSession session = DbSession;
-
-            T result = session.Connection.Query<T>(sql, param, null, buffered, commandTimeout, commandType).FirstOrDefault();
-
-            session.Dispose(); // 释放资源
-
-            return result;
-        }
-
-        /// <summary>
-        /// 获取数据列表（所有、部分或者分页获取）
-        /// </summary>
-        /// <param name="sql">sql语句或者存储过程</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="buffered">是否缓冲查询数据，详细信息：https://dapper-tutorial.net/buffered </param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="commandType">命令类型（sql语句或是存储过程）</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>当前查询数据列表</returns>
-        public virtual IEnumerable<T> GetList(string sql, object param = null, bool buffered = true, int? commandTimeout = null, CommandType? commandType = null, bool useTransaction = false)
-        {
-            if (string.IsNullOrEmpty(sql))
-                return null;
-
-            IEnumerable<T> results;
-
-            IDbSession session = DbSession;
+            IDbTransaction transaction = null;
             if (useTransaction)
             {
                 session.BeginTrans();
-
-                results = session.Connection.Query<T>(sql, param, session.Transaction, buffered, commandTimeout, commandType).ToList();
-                session.Commit();
-            }
-            else
-            {
-                results = session.Connection.Query<T>(sql, param, null, buffered, commandTimeout, commandType).ToList();
+                transaction = session.Transaction;
             }
 
-            session.Dispose(); // 释放资源
+            var result = await session.Connection.GetAsync<T>(id, transaction, commandTimeout);
 
-            return results;
+            session.Dispose();
+
+            return result;
         }
 
-        /// <summary>
-        /// 添加数据
-        /// </summary>
-        /// <param name="entity">要添加的实体对象</param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>执行结果（一般为添加的Id）</returns>
-        public virtual dynamic Insert(T entity, int? commandTimeout = null, bool useTransaction = false)
+        public virtual async Task<T> GetFirstOrDefaultAsync(string sql, object param = null, bool useTransaction = false, int? commandTimeout = null)
         {
             IDbSession session = DbSession;
 
-            try
+            IDbTransaction transaction = null;
+            if (useTransaction)
             {
-                if (useTransaction)
-                {
-                    session.BeginTrans();
+                session.BeginTrans();
+                transaction = session.Transaction;
+            }
 
-                    dynamic result = session.Connection.Insert(entity, session.Transaction, commandTimeout);
-                    session.Commit();
-                    return result;
-                }
-                else
-                {
-                    return session.Connection.Insert(entity, null, commandTimeout);
-                }
-            }
-            catch (Exception)
-            {
-                if (useTransaction)
-                {
-                    session.Rollback();
-                }
+            var result = await session.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction, commandTimeout);
 
-                return null;
-            }
-            finally
-            {
-                session.Dispose(); // 释放资源
-            }
+            session.Dispose();
+
+            return result;
         }
 
-        /// <summary>
-        /// 修改数据
-        /// </summary>
-        /// <param name="entity">要修改的实体对象</param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>执行结果（true or false）</returns>
-        public virtual bool Update(T entity, int? commandTimeout = null, bool useTransaction = false)
-        {
-            IDbSession session = DbSession;
-
-            try
-            {
-                if (useTransaction)
-                {
-                    session.BeginTrans();
-
-                    bool result = session.Connection.Update(entity, session.Transaction, commandTimeout);
-                    session.Commit();
-                    return result;
-                }
-                else
-                {
-                    return session.Connection.Update(entity, null, commandTimeout);
-                }
-            }
-            catch (Exception)
-            {
-                if (useTransaction)
-                {
-                    session.Rollback();
-                }
-
-                return false;
-            }
-            finally
-            {
-                session.Dispose(); // 释放资源
-            }
-        }
-
-        /// <summary>
-        /// 删除数据（默认以主键删除）
-        /// </summary>
-        /// <param name="entityId">要删除的实体对象Id</param>
-        /// <param name="predicate">where的条件（为空则用主键删除，不为空则以条件为准）</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>执行结果（true or false）</returns>
-        public virtual bool Delete(int entityId, string predicate = "", object param = null, int? commandTimeout = null, bool useTransaction = false)
-        {
-            StringBuilder builder = new StringBuilder(string.Format("DELETE FROM {0}", TableName));
-            builder.Append(" WHERE ");
-
-            builder.Append(string.IsNullOrEmpty(predicate) ? string.Format("Id = {0};", entityId) : predicate);
-
-            return Execute(builder.ToString(), param, commandTimeout, CommandType.Text, useTransaction) > 0;
-        }
-
-        /// <summary>
-        /// 执行对象sql语句（一般需要事务处理）
-        /// </summary>
-        /// <param name="sql">sql语句或者存储过程</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="commandType">命令类型（sql语句或是存储过程）</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>执行受影响的行数</returns>
-        public virtual int Execute(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null, bool useTransaction = true)
+        public virtual async Task<IEnumerable<T>> GetListAsync(string sql, object param = null, bool useTransaction = false,
+            int? commandTimeout = null, CommandType? commandType = null)
         {
             if (string.IsNullOrEmpty(sql))
-                return 0;
+                return null;
 
             IDbSession session = DbSession;
 
-            try
+            IDbTransaction transaction = null;
+            if (useTransaction)
             {
-                if (useTransaction)
-                {
-                    session.BeginTrans();
-
-                    int rowsAffected = session.Connection.Execute(sql, param, session.Transaction, commandTimeout, commandType);
-                    session.Commit();
-
-                    return rowsAffected;
-                }
-                else
-                {
-                    return session.Connection.Execute(sql, param, null, commandTimeout, commandType);
-                }
+                session.BeginTrans();
+                transaction = session.Transaction;
             }
-            catch (Exception)
+
+            var result = await session.Connection.QueryAsync<T>(sql, param, transaction, commandTimeout, commandType);
+
+            session.Dispose();
+
+            return result;
+        }
+
+        public virtual async Task<int> InsertAsync(T entity, bool useTransaction = false, int? commandTimeout = null)
+        {
+            IDbSession session = DbSession;
+
+            IDbTransaction transaction = null;
+            if (useTransaction)
             {
-                if (useTransaction)
-                {
-                    session.Rollback();
-                }
+                session.BeginTrans();
+                transaction = session.Transaction;
+            }
 
-                return 0;
-            }
-            finally
+            int result = await session.Connection.InsertAsync(entity, transaction, commandTimeout);
+
+            session.Dispose();
+
+            return result;
+        }
+
+        public virtual async Task<bool> UpdateAsync(T entity, bool useTransaction = false, int? commandTimeout = null)
+        {
+            IDbSession session = DbSession;
+
+            IDbTransaction transaction = null;
+            if (useTransaction)
             {
-                session.Dispose(); // 释放资源
+                session.BeginTrans();
+                transaction = session.Transaction;
             }
+
+            bool result = await session.Connection.UpdateAsync(entity, transaction, commandTimeout);
+
+            session.Dispose();
+
+            return result;
+        }
+
+        public virtual async Task<bool> DeleteAsync(T entity, bool useTransaction = false, int? commandTimeout = null)
+        {
+            IDbSession session = DbSession;
+
+            IDbTransaction transaction = null;
+            if (useTransaction)
+            {
+                session.BeginTrans();
+                transaction = session.Transaction;
+            }
+
+            bool result = await session.Connection.DeleteAsync(entity, transaction, commandTimeout);
+
+            session.Dispose();
+
+            return result;
+        }
+
+        public virtual async Task<int> ExecuteAsync(string sql, object param = null, bool useTransaction = false, int? commandTimeout = null,
+            CommandType? commandType = null)
+        {
+            IDbSession session = DbSession;
+
+            IDbTransaction transaction = null;
+            if (useTransaction)
+            {
+                session.BeginTrans();
+                transaction = session.Transaction;
+            }
+
+            int result = await session.Connection.ExecuteAsync(sql, param, transaction, commandTimeout, commandType);
+
+            session.Dispose();
+
+            return result;
         }
     }
 }

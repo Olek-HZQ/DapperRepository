@@ -1,66 +1,76 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
-using DapperRepository.Core.Configuration;
-using DapperRepository.Core.Constants;
+using DapperRepo.Web.Models.Customers;
 using DapperRepository.Core.Domain.Customers;
 using DapperRepository.Services.BaseInterfaces;
-using DapperRepository.Web.Models.Customers;
 
 namespace DapperRepository.Web.Controllers
 {
     public class CustomerController : Controller
     {
         private readonly ICustomerService _customerService;
-        private readonly ICustomerRoleService _customerRoleService;
-        private readonly DapperRepositoryConfig _config;
 
-        public CustomerController(ICustomerService customerService, ICustomerRoleService customerRoleService, DapperRepositoryConfig config)
+        public CustomerController(ICustomerService customerService)
         {
             _customerService = customerService;
-            _customerRoleService = customerRoleService;
-            _config = config;
+        }
+
+        public ActionResult Index()
+        {
+            return View();
         }
 
         public ActionResult List()
         {
-            ViewBag.DbSource = _config.ActivedDbTypeName;
-
             return View();
         }
 
-        [HttpGet]
-        public ActionResult CustomerList(int pageIndex, int pageSize, string username, string email)
+        [HttpPost]
+        public async Task<ActionResult> BootstrapCustomerList(SearchCustomerModel model)
         {
-            int total;
-            var customers = _customerService.GetPagedCustomers(out total, username, email, pageIndex - 1, pageSize, (!string.IsNullOrEmpty(_config.ActivedDbTypeName) && _config.ActivedDbTypeName == ConnKeyConstants.Mssql));
+            var result = await _customerService.GetPagedCustomers(model.Username, model.Email, model.PageIndex - 1, model.PageSize);
 
-            var customerRoles = _customerRoleService.GetCustomerRoles();
-
-            var result = customers.Select(x =>
+            List<CustomerModel> customers = result.Item2.Select(x =>
             {
-                string roleName = "";
-
-                var customerRole = customerRoles.FirstOrDefault(c => c.Id == x.CustomerRoleId);
-                if (customerRole != null)
-                    roleName = customerRole.Name;
-
-                var model = new CustomerPagedResultModel
+                CustomerModel customerModel = new CustomerModel
                 {
                     Id = x.Id,
                     Username = x.Username,
-                    RoleName = roleName,
                     Email = x.Email,
                     Active = x.Active,
                     CreationTime = x.CreationTime.ToString("yyyy-MM-dd")
                 };
-                return model;
-            });
+                return customerModel;
+            }).ToList();
 
-            return Json(new { code = 0, data = result, count = total }, JsonRequestBehavior.AllowGet);
+            return Json(new { rows = customers, total = result.Item1 });
         }
 
-        public ActionResult PopCustomer(string viewName, int id = 0)
+        public async Task<ActionResult> LayuiCustomerList(SearchCustomerModel model)
+        {
+            var result = await _customerService.GetPagedCustomers(model.Username, model.Email, model.PageIndex - 1, model.PageSize);
+
+            List<CustomerModel> customers = result.Item2.Select(x =>
+            {
+                CustomerModel customerModel = new CustomerModel
+                {
+                    Id = x.Id,
+                    Username = x.Username,
+                    Email = x.Email,
+                    Active = x.Active,
+                    CreationTime = x.CreationTime.ToString("yyyy-MM-dd")
+                };
+                return customerModel;
+            }).ToList();
+
+            return Json(new { code = 0, data = customers, count = result.Item1 }, JsonRequestBehavior.AllowGet);
+        }
+
+
+        public async Task<ActionResult> PopCustomer(string viewName, int id = 0)
         {
             CustomerModel model = new CustomerModel();
 
@@ -68,7 +78,7 @@ namespace DapperRepository.Web.Controllers
 
             if (id > 0)
             {
-                CustomerDtoModel customer = _customerService.GetCustomerBy(id);
+                Customer customer = await _customerService.GetCustomerByIdAsync(id);
 
                 if (customer == null)
                 {
@@ -79,28 +89,13 @@ namespace DapperRepository.Web.Controllers
                 model.Username = customer.Username;
                 model.Email = customer.Email;
                 model.Active = customer.Active;
-
-                model.AvailableRoles = _customerRoleService.GetCustomerRoles().Select(x => new SelectListItem
-                {
-                    Value = x.Id.ToString(),
-                    Text = x.Name,
-                    Selected = x.Id == customer.CustomerRole.Id
-                }).ToList();
-            }
-            else
-            {
-                model.AvailableRoles = _customerRoleService.GetCustomerRoles().Select(x => new SelectListItem
-                {
-                    Value = x.Id.ToString(),
-                    Text = x.Name
-                }).ToList();
             }
 
             return PartialView("_PopCustomer", model);
         }
 
         [HttpPost]
-        public ActionResult CreateCustomer(CustomerModel model)
+        public async Task<ActionResult> CreateCustomer(CustomerModel model)
         {
             try
             {
@@ -112,25 +107,46 @@ namespace DapperRepository.Web.Controllers
                     CreationTime = DateTime.Now
                 };
 
-                int result = _customerService.InsertCustomer(customer, model.RoleId);
+                int result = await _customerService.InsertCustomerAsync(customer);
 
-                return Json(new { status = result, msg = result > 0 ? "added successfully" : "added failed" });
+                return Json(new { status = result, msg = result > 0 ? "Added successfully" : "Added failed" });
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = "added failed:" + ex.Message });
+                return Json(new { status = false, msg = "Added failed:" + ex.Message });
 
             }
         }
 
-        [HttpPost]
-        public ActionResult EditCustomer(CustomerModel model)
+        public async Task<ActionResult> Edit(int id)
         {
-            Customer customer = _customerService.GetCustomerById(model.Id);
+            Customer customer = await _customerService.GetCustomerByIdAsync(id);
 
             if (customer == null)
             {
-                return Json(new { status = false, msg = "no customer found with the specified id" });
+                return RedirectToAction("Index");
+            }
+
+            CustomerModel model = new CustomerModel
+            {
+                Id = customer.Id,
+                Username = customer.Username,
+                Email = customer.Email,
+                Active = customer.Active,
+                CreationTime = customer.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+
+            return PartialView("_EditModal", model);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> EditCustomer(CustomerModel model)
+        {
+            Customer customer = await _customerService.GetCustomerByIdAsync(model.Id);
+
+            if (customer == null)
+            {
+                return Json(new { status = false, msg = "No customer found with the specified id" });
             }
 
             try
@@ -139,32 +155,32 @@ namespace DapperRepository.Web.Controllers
                 customer.Email = model.Email.Trim();
                 customer.Active = model.Active;
 
-                int result = _customerService.UpdateCustomer(customer, model.RoleId);
+                bool result = await _customerService.UpdateCustomerAsync(customer);
 
-                return Json(new { status = result, msg = result > 0 ? "edited successfully" : "edited failed" });
+                return Json(new { status = result, msg = result ? "Edited successfully" : "Edited failed" });
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = "edited failed:" + ex.Message });
+                return Json(new { status = false, msg = "Edited failed:" + ex.Message });
 
             }
         }
 
         [HttpPost]
-        public ActionResult DeleteCustomer(int id)
+        public async Task<ActionResult> DeleteCustomer(int id)
         {
-            Customer customer = _customerService.GetCustomerById(id);
+            Customer customer = await _customerService.GetCustomerByIdAsync(id);
             if (customer == null)
-                return Json(new { status = false, msg = "no customer found with the specified id" });
+                return Json(new { status = false, msg = "No customer found with the specified id" });
 
             try
             {
-                bool result = _customerService.DeleteCustomer(customer);
-                return Json(new { status = result, msg = result ? "deleted successfully" : "deleted failed" });
+                bool result = await _customerService.DeleteCustomerAsync(customer);
+                return Json(new { status = result, msg = result ? "Deleted successfully" : "Deleted failed" });
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, msg = "deleted failed:" + ex.Message });
+                return Json(new { status = false, msg = "Deleted failed:" + ex.Message });
             }
         }
     }

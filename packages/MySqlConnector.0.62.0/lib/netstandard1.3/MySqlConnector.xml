@@ -1,0 +1,4254 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MySqlConnector</name>
+    </assembly>
+    <members>
+        <member name="T:MySqlConnector.Authentication.AuthenticationPlugins">
+            <summary>
+            A registry of known authentication plugins.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Authentication.AuthenticationPlugins.Register(MySqlConnector.Authentication.IAuthenticationPlugin)">
+            <summary>
+            Registers the specified authentication plugin. The name of this plugin must be unique.
+            </summary>
+            <param name="plugin">The authentication plugin.</param>
+        </member>
+        <member name="T:MySqlConnector.Authentication.IAuthenticationPlugin">
+            <summary>
+            The primary interface implemented by an authentication plugin.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Authentication.IAuthenticationPlugin.Name">
+            <summary>
+            The authentication plugin name.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Authentication.IAuthenticationPlugin.CreateResponse(System.String,System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Creates the authentication response.
+            </summary>
+            <param name="password">The client's password.</param>
+            <param name="authenticationData">The authentication data supplied by the server; this is the <code>auth method data</code>
+            from the <a href="https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::AuthSwitchRequest">Authentication
+            Method Switch Request Packet</a>.</param>
+            <returns></returns>
+        </member>
+        <member name="T:MySqlConnector.Core.CommandListPosition">
+            <summary>
+            <see cref="T:MySqlConnector.Core.CommandListPosition"/> encapsulates a list of <see cref="T:MySqlConnector.Core.IMySqlCommand"/> and the current position within that list.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Core.CommandListPosition.Commands">
+            <summary>
+            The commands in the list.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Core.CommandListPosition.CommandIndex">
+            <summary>
+            The index of the current command.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Core.CommandListPosition.PreparedStatementIndex">
+            <summary>
+            If the current command is a prepared statement, the index of the current prepared statement for that command.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Core.ConnectionPool.IsEmpty">
+            <summary>
+            Returns <c>true</c> if the connection pool is empty, i.e., all connections are in use. Note that in a highly-multithreaded
+            environment, the value of this property may be stale by the time it's returned.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Core.ConnectionPool.GetProcedureCache">
+            <summary>
+            Returns the stored procedure cache for this <see cref="T:MySqlConnector.Core.ConnectionPool"/>, lazily creating it on demand.
+            This method may return a different object after <see cref="M:MySqlConnector.Core.ConnectionPool.ClearAsync(MySqlConnector.Protocol.Serialization.IOBehavior,System.Threading.CancellationToken)"/> has been called. The returned
+            object is shared between multiple threads and is only safe to use after taking a <c>lock</c> on the
+            object itself.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Core.ConnectionPool.RecoverLeakedSessions">
+            <summary>
+            Examines all the <see cref="T:MySqlConnector.Core.ServerSession"/> objects in <see cref="F:MySqlConnector.Core.ConnectionPool.m_leasedSessions"/> to determine if any
+            have an owning <see cref="T:MySql.Data.MySqlClient.MySqlConnection"/> that has been garbage-collected. If so, assumes that the connection
+            was not properly disposed and returns the session to the pool.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Core.ConnectionSettings.ConnectionStringBuilder">
+            <summary>
+            The <see cref="T:MySql.Data.MySqlClient.MySqlConnectionStringBuilder" /> that was used to create this <see cref="T:MySqlConnector.Core.ConnectionSettings" />.!--
+            This object must not be mutated.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Core.ICancellableCommand">
+            <summary>
+            <see cref="T:MySqlConnector.Core.IMySqlCommand"/> provides an internal abstraction over operations that can be cancelled: <see cref="T:MySql.Data.MySqlClient.MySqlCommand"/> and <see cref="T:MySql.Data.MySqlClient.MySqlBatch"/>.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Core.ICancellableCommandExtensions.GetNextId">
+            <summary>
+            Returns a unique ID for all implementations of <see cref="T:MySqlConnector.Core.ICancellableCommand"/>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MySqlConnector.Core.ICancellableCommandExtensions.ResetCommandTimeout(MySqlConnector.Core.ICancellableCommand)">
+            <summary>
+            Causes the effective command timeout to be reset back to the value specified by <see cref="P:MySqlConnector.Core.ICancellableCommand.CommandTimeout"/>.
+            </summary>
+            <remarks>As per the <a href="https://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqlcommand.commandtimeout.aspx">MSDN documentation</a>,
+            "This property is the cumulative time-out (for all network packets that are read during the invocation of a method) for all network reads during command
+            execution or processing of the results. A time-out can still occur after the first row is returned, and does not include user processing time, only network
+            read time. For example, with a 30 second time out, if Read requires two network packets, then it has 30 seconds to read both network packets. If you call
+            Read again, it will have another 30 seconds to read any data that it requires."
+            The <see cref="M:MySqlConnector.Core.ICancellableCommandExtensions.ResetCommandTimeout(MySqlConnector.Core.ICancellableCommand)"/> method is called by public ADO.NET API methods to reset the effective time remaining at the beginning of a new
+            method call.</remarks>
+        </member>
+        <member name="T:MySqlConnector.Core.ICommandPayloadCreator">
+            <summary>
+            <see cref="T:MySqlConnector.Core.ICommandPayloadCreator"/> creates the data for an "execute query" command for one or more <see cref="T:MySqlConnector.Core.IMySqlCommand"/> objects in a command list.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Core.ICommandPayloadCreator.WriteQueryCommand(MySqlConnector.Core.CommandListPosition@,System.Collections.Generic.IDictionary{System.String,MySqlConnector.Core.CachedProcedure},MySqlConnector.Protocol.Serialization.ByteBufferWriter)">
+            <summary>
+            Writes the payload for an "execute query" command to <paramref name="writer"/>.
+            </summary>
+            <param name="commandListPosition">The command list and its current position. This will be updated to the position of the next command to write (or past the end if there are no more commands).</param>
+            <param name="cachedProcedures">A <see cref="T:MySqlConnector.Core.CachedProcedure"/> for all the stored procedures in the command list, if any.</param>
+            <param name="writer">The <see cref="T:MySqlConnector.Protocol.Serialization.ByteBufferWriter"/> to write the payload to.</param>
+            <returns><c>true</c> if a command was written; otherwise, <c>false</c> (if there were no more commands in the list).</returns>
+        </member>
+        <member name="M:MySqlConnector.Core.ILoadBalancer.LoadBalance(System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            Returns an <see cref="T:System.Collections.Generic.IEnumerable`1"/> containing <paramref name="hosts"/> in the order they
+            should be tried to satisfy the load balancing policy.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Core.IMySqlCommand">
+            <summary>
+            <see cref="T:MySqlConnector.Core.IMySqlCommand"/> provides an internal abstraction over <see cref="T:MySql.Data.MySqlClient.MySqlCommand"/> and <see cref="T:MySql.Data.MySqlClient.MySqlBatchCommand"/>.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Core.IValuesEnumerator">
+            <summary>
+            <see cref="T:MySqlConnector.Core.IValuesEnumerator"/> provides an abstraction over iterating through a sequence of
+            rows, where each row can fill an array of field values.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Core.ParsedStatement">
+            <summary>
+            <see cref="T:MySqlConnector.Core.ParsedStatement"/> represents an individual SQL statement that's been parsed
+            from a string possibly containing multiple semicolon-delimited SQL statements.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Core.ParsedStatement.StatementBytes">
+            <summary>
+            The bytes for this statement that will be written on the wire.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Core.ParsedStatement.ParameterNames">
+            <summary>
+            The names of the parameters (if known) of the parameters in the prepared statement. There
+            is one entry in this list for each parameter, which will be <c>null</c> if the name is unknown.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Core.ParsedStatement.ParameterIndexes">
+            <summary>
+            The indexes of the parameters in the prepared statement. There is one entry in this list for
+            each parameter; it will be <c>-1</c> if the parameter is named.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Core.ParsedStatements">
+            <summary>
+            <see cref="T:MySqlConnector.Core.ParsedStatements"/> wraps a collection of <see cref="T:MySqlConnector.Core.ParsedStatement"/> objects.
+            It implements <see cref="T:System.IDisposable"/> to return the memory backing the statements to a shared pool.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Core.PreparedStatement">
+            <summary>
+            <see cref="T:MySqlConnector.Core.PreparedStatement"/> is a statement that has been prepared on the MySQL Server.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Core.ServerSession.SafeDispose``1(``0@)">
+            <summary>
+            Disposes and sets <paramref name="disposable"/> to <c>null</c>, ignoring any
+            <see cref="T:System.IO.IOException"/> or <see cref="T:System.Net.Sockets.SocketException"/> that is thrown.
+            </summary>
+            <typeparam name="T">An <see cref="T:System.IDisposable"/> type.</typeparam>
+            <param name="disposable">The object to dispose.</param>
+        </member>
+        <member name="M:MySqlConnector.Core.SingleCommandPayloadCreator.WriteQueryPayload(MySqlConnector.Core.IMySqlCommand,System.Collections.Generic.IDictionary{System.String,MySqlConnector.Core.CachedProcedure},MySqlConnector.Protocol.Serialization.ByteBufferWriter)">
+            <summary>
+            Writes the text of <paramref name="command"/> to <paramref name="writer"/>, encoded in UTF-8.
+            </summary>
+            <param name="command">The command.</param>
+            <param name="cachedProcedures">The cached procedures.</param>
+            <param name="writer">The output writer.</param>
+            <returns><c>true</c> if a complete command was written; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="F:MySqlConnector.Core.SqlParser.FinalParseStates.Complete">
+            <summary>
+            The statement is complete (apart from potentially needing a semicolon or newline).
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Core.SqlParser.FinalParseStates.NeedsNewline">
+            <summary>
+            The statement needs a newline (e.g., to terminate a final comment).
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Core.SqlParser.FinalParseStates.NeedsSemicolon">
+            <summary>
+            The statement needs a semicolon (if another statement is going to be concatenated to it).
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Logging.IMySqlConnectorLogger">
+            <summary>
+            Implementations of <see cref="T:MySqlConnector.Logging.IMySqlConnectorLogger"/> write logs to a particular target.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Logging.IMySqlConnectorLogger.IsEnabled(MySqlConnector.Logging.MySqlConnectorLogLevel)">
+            <summary>
+            Returns <c>true</c> if logging for this logger is enabled at the specified level.
+            </summary>
+            <param name="level">The log level.</param>
+            <returns><c>true</c> if logging is enabled; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:MySqlConnector.Logging.IMySqlConnectorLogger.Log(MySqlConnector.Logging.MySqlConnectorLogLevel,System.String,System.Object[],System.Exception)">
+            <summary>
+            Writes a log message to the target.
+            </summary>
+            <param name="level">The log level.</param>
+            <param name="message">The log message. See documentation for <paramref name="args"/> for notes on interpreting <c>{0}</c> within this string.</param>
+            <param name="args">If not <c>null</c> or empty, then <paramref name="message"/> includes formatting placeholders (e.g., <c>{0}</c>)
+            which must be replaced with the arguments in <paramref name="args"/>, using <see cref="M:System.String.Format(System.IFormatProvider,System.String,System.Object[])"/> or similar.
+            If <c>null</c> or an empty array, then <paramref name="message"/> is a literal string; any curly braces within it must be treated as literal characters,
+            not formatting placeholders.</param>
+            <param name="exception">If not <c>null</c>, an <see cref="T:System.Exception"/> associated with the log message.</param>
+            <remarks>This method may be called from multiple threads and must be thread-safe. This method may be called
+            even if <see cref="M:MySqlConnector.Logging.IMySqlConnectorLogger.IsEnabled(MySqlConnector.Logging.MySqlConnectorLogLevel)"/> would return <c>false</c> for <paramref name="level"/>; the implementation must
+            check if logging is enabled for that level.</remarks>
+        </member>
+        <member name="T:MySqlConnector.Logging.IMySqlConnectorLoggerProvider">
+            <summary>
+            Implementations of <see cref="T:MySqlConnector.Logging.IMySqlConnectorLoggerProvider"/> create logger instances.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Logging.IMySqlConnectorLoggerProvider.CreateLogger(System.String)">
+            <summary>
+            Creates a logger with the specified name. This method may be called from multiple threads and must be thread-safe.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Logging.MySqlConnectorLogManager">
+            <summary>
+            Controls logging for MySqlConnector.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Logging.MySqlConnectorLogManager.Provider">
+            <summary>
+            Allows the <see cref="T:MySqlConnector.Logging.IMySqlConnectorLoggerProvider"/> to be set for this library. <see cref="P:MySqlConnector.Logging.MySqlConnectorLogManager.Provider"/> can
+            be set once, and must be set before any other library methods are used.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Logging.NoOpLogger">
+            <summary>
+            <see cref="T:MySqlConnector.Logging.NoOpLogger"/> is an implementation of <see cref="T:MySqlConnector.Logging.IMySqlConnectorLogger"/> that does nothing.
+            </summary>
+            <remarks>This is the default logging implementation unless <see cref="P:MySqlConnector.Logging.MySqlConnectorLogManager.Provider"/> is set.</remarks>
+        </member>
+        <member name="M:MySqlConnector.Logging.NoOpLogger.IsEnabled(MySqlConnector.Logging.MySqlConnectorLogLevel)">
+            <summary>
+            Returns <c>false</c>.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Logging.NoOpLogger.Log(MySqlConnector.Logging.MySqlConnectorLogLevel,System.String,System.Object[],System.Exception)">
+            <summary>
+            Ignores the specified log message.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Logging.NoOpLogger.Instance">
+            <summary>
+            Returns a singleton instance of <see cref="T:MySqlConnector.Logging.NoOpLogger"/>.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Logging.NoOpLoggerProvider">
+            <summary>
+            Creates loggers that do nothing.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Logging.NoOpLoggerProvider.CreateLogger(System.String)">
+            <summary>
+            Returns a <see cref="T:MySqlConnector.Logging.NoOpLogger"/>.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Protocol.CharacterSet">
+            <summary>
+            MySQL character set codes.
+            </summary>
+            <remarks>Obtained from <c>SELECT id, collation_name FROM information_schema.collations ORDER BY id;</c> on MySQL 8.0.16.</remarks>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.NotNull">
+            <summary>
+            Field cannot be <c>NULL</c>.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.PrimaryKey">
+            <summary>
+            Field is part of a primary key.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.UniqueKey">
+            <summary>
+            Field is part of a unique key.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.MultipleKey">
+            <summary>
+            Field is part of a nonunique key.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.Blob">
+            <summary>
+            Field is a <c>BLOB</c> or <c>TEXT</c> (deprecated).
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.Unsigned">
+            <summary>
+            Field has the <c>UNSIGNED</c> attribute.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.ZeroFill">
+            <summary>
+            Field has the <c>ZEROFILL</c> attribute.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.Binary">
+            <summary>
+            Field has the <c>BINARY</c> attribute.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.Enum">
+            <summary>
+            Field is an <c>ENUM</c>.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.AutoIncrement">
+            <summary>
+            Field has the <c>AUTO_INCREMENT</c> attribute.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.Timestamp">
+            <summary>
+            Field is a <c>TIMESTAMP</c> (deprecated).
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.Set">
+            <summary>
+            Field is a <c>SET</c>.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ColumnFlags.Number">
+            <summary>
+            Field is numeric.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Protocol.ColumnType">
+            <summary>
+            See <a href="https://dev.mysql.com/doc/internals/en/com-query-response.html#column-type">MySQL documentation</a>.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Protocol.Payloads.EofPayload.IsEof(MySqlConnector.Protocol.PayloadData)">
+            <summary>
+            Returns <c>true</c> if <paramref name="payload"/> contains an <a href="https://dev.mysql.com/doc/internals/en/packet-EOF_Packet.html">EOF packet</a>.
+            Note that EOF packets can appear in places where a length-encoded integer (which starts with the same signature byte) may appear, so the length
+            has to be checked to verify that it is an EOF packet.
+            </summary>
+            <param name="payload">The payload to examine.</param>
+            <returns><c>true</c> if this is an EOF packet; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="T:MySqlConnector.Protocol.ProtocolCapabilities">
+            <summary>
+            The <a href="https://dev.mysql.com/doc/internals/en/capability-flags.html">MySQL Capability flags</a>.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.None">
+            <summary>
+            No specified capabilities.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.LongPassword">
+            <summary>
+            Use the improved version of Old Password Authentication.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.FoundRows">
+            <summary>
+            Send found rows instead of affected rows in EOF_Packet.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.LongFlag">
+            <summary>
+            Longer flags in Protocol::ColumnDefinition320.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.ConnectWithDatabase">
+            <summary>
+            Database (schema) name can be specified on connect in Handshake Response Packet.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.NoSchema">
+            <summary>
+            Do not permit database.table.column.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.Compress">
+            <summary>
+            Supports compression.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.Odbc">
+            <summary>
+            Special handling of ODBC behavior.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.LocalFiles">
+            <summary>
+            Enables the LOCAL INFILE request of LOAD DATA|XML.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.IgnoreSpace">
+            <summary>
+            Parser can ignore spaces before '('.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.Protocol41">
+            <summary>
+            Supports the 4.1 protocol.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.Interactive">
+            <summary>
+            Server: Supports interactive and noninteractive clients. Client: The session <code>wait_timeout</code> variable is set to the value of the session <code>interactive_timeout</code> variable.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.Ssl">
+            <summary>
+            Supports SSL.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.Transactions">
+            <summary>
+            Can send status flags in EOF_Packet.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.SecureConnection">
+            <summary>
+            Supports Authentication::Native41.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.MultiStatements">
+            <summary>
+            Can handle multiple statements per COM_QUERY and COM_STMT_PREPARE.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.MultiResults">
+            <summary>
+            Can send multiple resultsets for COM_QUERY.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.PreparedStatementMultiResults">
+            <summary>
+            Can send multiple resultsets for COM_STMT_EXECUTE.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.PluginAuth">
+            <summary>
+            Sends extra data in Initial Handshake Packet and supports the pluggable authentication protocol.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.ConnectionAttributes">
+            <summary>
+            Permits connection attributes in Protocol::HandshakeResponse41.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.PluginAuthLengthEncodedClientData">
+            <summary>
+            Understands length-encoded integer for auth response data in Protocol::HandshakeResponse41.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.CanHandleExpiredPasswords">
+            <summary>
+            Announces support for expired password extension.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.SessionTrack">
+            <summary>
+            Can set SERVER_SESSION_STATE_CHANGED in the Status Flags and send session-state change data after a OK packet.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.DeprecateEof">
+            <summary>
+            Can send OK after a Text Resultset.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.MariaDbClientProgress">
+            <summary>
+            Client supports progress indicator.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.MariaDbComMulti">
+            <summary>
+            Client supports COM_MULTI (i.e., CommandKind.Multi)
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ProtocolCapabilities.MariaDbStatementBulkOperations">
+            <summary>
+            Support of array binding.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Protocol.Serialization.ArraySegmentHolder`1">
+            <summary>
+            <see cref="T:MySqlConnector.Protocol.Serialization.ArraySegmentHolder`1"/> is a class that holds an instance of <see cref="T:System.ArraySegment`1"/>.
+            Its primary difference from <see cref="T:System.ArraySegment`1"/> is that it's a reference type, so mutations
+            to this object are visible to other objects that hold a reference to it.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Protocol.Serialization.AuthenticationUtility.HashPassword(System.Byte[],System.Int32,System.String)">
+            <summary>
+            Hashes a password with the "Secure Password Authentication" method.
+            </summary>
+            <param name="challenge">The 20-byte random challenge (from the "auth-plugin-data" in the initial handshake).</param>
+            <param name="offset">The offset of the start of the challenge within <paramref name="challenge"/>.</param>
+            <param name="password">The password to hash.</param>
+            <returns>A 20-byte password hash.</returns>
+            <remarks>See <a href="https://dev.mysql.com/doc/internals/en/secure-password-authentication.html">Secure Password Authentication</a>.</remarks>
+        </member>
+        <member name="T:MySqlConnector.Protocol.Serialization.NegotiateToMySqlConverterStream">
+             <summary>
+             Helper class to translate NegotiateStream framing for SPNEGO token
+             into MySQL protocol packets.
+            
+             Serves as underlying stream for System.Net.NegotiateStream
+             to perform MariaDB's auth_gssapi_client authentication.
+            
+             NegotiateStream protocol is described in e.g here
+             https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-NNS/[MS-NNS].pdf
+             We only use Handshake Messages for authentication.
+             </summary>
+        </member>
+        <member name="P:MySqlConnector.Protocol.Serialization.IByteHandler.RemainingTimeout">
+            <summary>
+            The remaining timeout (in milliseconds) for the next I/O read. Use <see cref="F:MySqlConnector.Utilities.Constants.InfiniteTimeout"/> to represent no (or, infinite) timeout.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Protocol.Serialization.IByteHandler.ReadBytesAsync(System.Memory{System.Byte},MySqlConnector.Protocol.Serialization.IOBehavior)">
+            <summary>
+            Reads data from this byte handler.
+            </summary>
+            <param name="buffer">The buffer to read into.</param>
+            <param name="ioBehavior">The <see cref="T:MySqlConnector.Protocol.Serialization.IOBehavior"/> to use when reading data.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask`1"/> holding the number of bytes read. If reading failed, this will be zero.</returns>
+        </member>
+        <member name="M:MySqlConnector.Protocol.Serialization.IByteHandler.WriteBytesAsync(System.ReadOnlyMemory{System.Byte},MySqlConnector.Protocol.Serialization.IOBehavior)">
+            <summary>
+            Writes data to this byte handler.
+            </summary>
+            <param name="data">The data to write.</param>
+            <param name="ioBehavior">The <see cref="T:MySqlConnector.Protocol.Serialization.IOBehavior"/> to use when writing.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask`1"/>. The value of this object is not defined.</returns>
+        </member>
+        <member name="T:MySqlConnector.Protocol.Serialization.IOBehavior">
+            <summary>
+            Specifies whether to perform synchronous or asynchronous I/O.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.Serialization.IOBehavior.Synchronous">
+            <summary>
+            Use synchronous I/O.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.Serialization.IOBehavior.Asynchronous">
+            <summary>
+            Use asynchronous I/O.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Protocol.Serialization.IPayloadHandler.StartNewConversation">
+            <summary>
+            Starts a new "conversation" with the MySQL Server. This resets the "<a href="https://dev.mysql.com/doc/internals/en/sequence-id.html">sequence id</a>"
+            and should be called when a new command begins.
+            </summary>
+        </member>
+        <member name="P:MySqlConnector.Protocol.Serialization.IPayloadHandler.ByteHandler">
+            <summary>
+            Gets or sets the underlying <see cref="T:MySqlConnector.Protocol.Serialization.IByteHandler"/> that data is read from and written to.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Protocol.Serialization.IPayloadHandler.ReadPayloadAsync(MySqlConnector.Protocol.Serialization.ArraySegmentHolder{System.Byte},MySqlConnector.Protocol.Serialization.ProtocolErrorBehavior,MySqlConnector.Protocol.Serialization.IOBehavior)">
+            <summary>
+            Reads the next payload.
+            </summary>
+            <param name="cache">An <see cref="T:MySqlConnector.Protocol.Serialization.ArraySegmentHolder`1"/> that will cache any buffers allocated during this
+            read. (To disable caching, pass <code>new ArraySegmentHolder&lt;byte&gt;</code> so the cache will be garbage-collected
+            when this method returns.)</param>
+            <param name="protocolErrorBehavior">The <see cref="T:MySqlConnector.Protocol.Serialization.ProtocolErrorBehavior"/> to use if there is a protocol error.</param>
+            <param name="ioBehavior">The <see cref="T:MySqlConnector.Protocol.Serialization.IOBehavior"/> to use when reading data.</param>
+            <returns>An <see cref="T:System.ArraySegment`1"/> containing the data that was read. This
+            <see cref="T:System.ArraySegment`1"/> will be valid to read from until the next time <see cref="M:MySqlConnector.Protocol.Serialization.IPayloadHandler.ReadPayloadAsync(MySqlConnector.Protocol.Serialization.ArraySegmentHolder{System.Byte},MySqlConnector.Protocol.Serialization.ProtocolErrorBehavior,MySqlConnector.Protocol.Serialization.IOBehavior)"/> or
+            <see cref="M:MySqlConnector.Protocol.Serialization.IPayloadHandler.WritePayloadAsync(System.ReadOnlyMemory{System.Byte},MySqlConnector.Protocol.Serialization.IOBehavior)"/> is called.</returns>
+        </member>
+        <member name="M:MySqlConnector.Protocol.Serialization.IPayloadHandler.WritePayloadAsync(System.ReadOnlyMemory{System.Byte},MySqlConnector.Protocol.Serialization.IOBehavior)">
+            <summary>
+            Writes a payload.
+            </summary>
+            <param name="payload">The data to write.</param>
+            <param name="ioBehavior">The <see cref="T:MySqlConnector.Protocol.Serialization.IOBehavior"/> to use when writing.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask`1"/>. The value of this object is not defined.</returns>
+        </member>
+        <member name="T:MySqlConnector.Protocol.Serialization.ProtocolErrorBehavior">
+            <summary>
+            Specifies how to handle protocol errors.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.Serialization.ProtocolErrorBehavior.Throw">
+            <summary>
+            Throw an exception when there is a protocol error. This is the default.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.Serialization.ProtocolErrorBehavior.Ignore">
+            <summary>
+            Ignore any protocol errors.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ServerStatus.InTransaction">
+            <summary>
+            A transaction is active.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ServerStatus.AutoCommit">
+            <summary>
+            Auto-commit is enabled
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ServerStatus.CursorExists">
+            <summary>
+            Used by Binary Protocol Resultset to signal that COM_STMT_FETCH must be used to fetch the row-data.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ServerStatus.InReadOnlyTransaction">
+            <summary>
+            In a read-only transaction.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.ServerStatus.SessionStateChanged">
+            <summary>
+            Connection state information has changed.
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.SessionTrackKind.SystemVariables">
+            <summary>
+            SESSION_TRACK_SYSTEM_VARIABLES: one or more system variables changed
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.SessionTrackKind.Schema">
+            <summary>
+            SESSION_TRACK_SCHEMA: schema changed
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.SessionTrackKind.StateChange">
+            <summary>
+            SESSION_TRACK_STATE_CHANGE: "track state change" changed
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Protocol.SessionTrackKind.Gtids">
+            <summary>
+            SESSION_TRACK_GTIDS: "track GTIDs" changed
+            </summary>
+        </member>
+        <member name="F:MySqlConnector.Utilities.Constants.InfiniteTimeout">
+            <summary>
+            A sentinel value indicating no (or infinite) timeout.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Utilities.ResizableArray`1">
+            <summary>
+            A wrapper around a resizable array. This type is intended to be used with <see cref="T:MySqlConnector.Utilities.ResizableArraySegment`1"/>.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Utilities.ResizableArray`1.DoResize(System.Int32)">
+            <summary>
+            Do not call this method directly; use <see cref="M:MySqlConnector.Utilities.Utility.Resize``1(MySqlConnector.Utilities.ResizableArray{``0}@,System.Int32)"/>.
+            </summary>
+        </member>
+        <member name="T:MySqlConnector.Utilities.ResizableArraySegment`1">
+            <summary>
+            An <see cref="T:System.ArraySegment`1"/> that supports having its underlying array reallocated and resized.
+            </summary>
+        </member>
+        <member name="M:MySqlConnector.Utilities.TimerQueue.Add(System.Int32,System.Action)">
+            <summary>
+            Adds a timer that will invoke <paramref name="action"/> in approximately <paramref name="delay"/> milliseconds.
+            </summary>
+            <param name="delay">The time (in milliseconds) to wait before invoking <paramref name="action"/>.</param>
+            <param name="action">The callback to invoke.</param>
+            <returns>A timer ID that can be passed to <see cref="M:MySqlConnector.Utilities.TimerQueue.Remove(System.UInt32)"/> to cancel the timer.</returns>
+        </member>
+        <member name="M:MySqlConnector.Utilities.TimerQueue.Remove(System.UInt32)">
+            <summary>
+            Cancels the timer with the specified ID.
+            </summary>
+            <param name="id">The timer ID (returned from <see cref="M:MySqlConnector.Utilities.TimerQueue.Add(System.Int32,System.Action)"/>).</param>
+            <returns><c>true</c> if the timer was removed; otherwise, <c>false</c>. This method will return <c>false</c> if the specified timer has already fired.</returns>
+        </member>
+        <member name="M:MySqlConnector.Utilities.Utility.GetRsaParameters(System.String)">
+            <summary>
+            Loads a RSA key from a PEM string.
+            </summary>
+            <param name="key">The key, in PEM format.</param>
+            <returns>An RSA key.</returns>
+        </member>
+        <member name="M:MySqlConnector.Utilities.Utility.Slice``1(System.ArraySegment{``0},System.Int32)">
+            <summary>
+            Returns a new <see cref="T:System.ArraySegment`1"/> that starts at index <paramref name="index"/> into <paramref name="arraySegment"/>.
+            </summary>
+            <param name="arraySegment">The <see cref="T:System.ArraySegment`1"/> from which to create a slice.</param>
+            <param name="index">The non-negative, zero-based starting index of the new slice (relative to <see cref="P:System.ArraySegment`1.Offset"/> of <paramref name="arraySegment"/>.</param>
+            <returns>A new <see cref="T:System.ArraySegment`1"/> starting at the <paramref name="index"/>th element of <paramref name="arraySegment"/> and continuing to the end of <paramref name="arraySegment"/>.</returns>
+        </member>
+        <member name="M:MySqlConnector.Utilities.Utility.Slice``1(System.ArraySegment{``0},System.Int32,System.Int32)">
+            <summary>
+            Returns a new <see cref="T:System.ArraySegment`1"/> that starts at index <paramref name="index"/> into <paramref name="arraySegment"/> and has a length of <paramref name="length"/>.
+            </summary>
+            <param name="arraySegment">The <see cref="T:System.ArraySegment`1"/> from which to create a slice.</param>
+            <param name="index">The non-negative, zero-based starting index of the new slice (relative to <see cref="P:System.ArraySegment`1.Offset"/> of <paramref name="arraySegment"/>.</param>
+            <param name="length">The non-negative length of the new slice.</param>
+            <returns>A new <see cref="T:System.ArraySegment`1"/> of length <paramref name="length"/>, starting at the <paramref name="index"/>th element of <paramref name="arraySegment"/>.</returns>
+        </member>
+        <member name="M:MySqlConnector.Utilities.Utility.ArraySlice(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Returns a new <see cref="T:byte[]"/> that is a slice of <paramref name="input"/> starting at <paramref name="offset"/>.
+            </summary>
+            <param name="input">The array to slice.</param>
+            <param name="offset">The offset at which to slice.</param>
+            <param name="length">The length of the slice.</param>
+            <returns>A new <see cref="T:byte[]"/> that is a slice of <paramref name="input"/> from <paramref name="offset"/> to the end.</returns>
+        </member>
+        <member name="M:MySqlConnector.Utilities.Utility.FindNextIndex(System.ReadOnlySpan{System.Byte},System.Int32,System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Finds the next index of <paramref name="pattern"/> in <paramref name="data"/>, starting at index <paramref name="offset"/>.
+            </summary>
+            <param name="data">The array to search.</param>
+            <param name="offset">The offset at which to start searching.</param>
+            <param name="pattern">The pattern to find in <paramref name="data"/>.</param>
+            <returns>The offset of <paramref name="pattern"/> within <paramref name="data"/>, or <c>-1</c> if <paramref name="pattern"/> was not found.</returns>
+        </member>
+        <member name="M:MySqlConnector.Utilities.Utility.Resize``1(MySqlConnector.Utilities.ResizableArray{``0}@,System.Int32)">
+            <summary>
+            Resizes <paramref name="resizableArray"/> to hold at least <paramref name="newLength"/> items.
+            </summary>
+            <remarks><paramref name="resizableArray"/> may be <c>null</c>, in which case a new <see cref="T:MySqlConnector.Utilities.ResizableArray`1"/> will be allocated.</remarks>
+        </member>
+        <member name="P:MySql.Data.MySqlClient.MySqlBulkCopy.NotifyAfter">
+            <summary>
+            Defines the number of rows to be processed before generating a notification event.
+            </summary>
+        </member>
+        <member name="E:MySql.Data.MySqlClient.MySqlBulkCopy.RowsCopied">
+            <summary>
+            Occurs every time that the number of rows specified by the <see cref="P:MySql.Data.MySqlClient.MySqlBulkCopy.NotifyAfter"/> property have been processed,
+            and once after all rows have been copied (if <see cref="P:MySql.Data.MySqlClient.MySqlBulkCopy.NotifyAfter"/> is non-zero).
+            </summary>
+            <remarks>
+            Receipt of a RowsCopied event does not imply that any rows have been sent to the server or committed.
+            </remarks>
+        </member>
+        <member name="P:MySql.Data.MySqlClient.MySqlBulkLoader.FileName">
+            <summary>
+            The name of the local (if <see cref="P:MySql.Data.MySqlClient.MySqlBulkLoader.Local"/> is <c>true</c>) or remote (otherwise) file to load.
+            Either this or <see cref="P:MySql.Data.MySqlClient.MySqlBulkLoader.SourceStream"/> must be set.
+            </summary>
+        </member>
+        <member name="P:MySql.Data.MySqlClient.MySqlBulkLoader.SourceStream">
+            <summary>
+            A <see cref="T:System.IO.Stream"/> containing the data to load. Either this or <see cref="P:MySql.Data.MySqlClient.MySqlBulkLoader.FileName"/> must be set.
+            The <see cref="P:MySql.Data.MySqlClient.MySqlBulkLoader.Local"/> property must be <c>true</c> if this is set.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlCertificateStoreLocation.None">
+            <summary>
+            Do not use certificate store
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlCertificateStoreLocation.CurrentUser">
+            <summary>
+            Use certificate store for the current user
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlCertificateStoreLocation.LocalMachine">
+            <summary>
+            User certificate store for the machine
+            </summary>
+        </member>
+        <member name="M:MySql.Data.MySqlClient.MySqlCommand.MySqlConnector#Core#ICancellableCommand#RegisterCancel(System.Threading.CancellationToken)">
+            <summary>
+            Registers <see cref="M:MySql.Data.MySqlClient.MySqlCommand.Cancel"/> as a callback with <paramref name="token"/> if cancellation is supported.
+            </summary>
+            <param name="token">The <see cref="T:System.Threading.CancellationToken"/>.</param>
+            <returns>An object that must be disposed to revoke the cancellation registration.</returns>
+            <remarks>This method is more efficient than calling <code>token.Register(Command.Cancel)</code> because it avoids
+            unnecessary allocations.</remarks>
+        </member>
+        <member name="P:MySql.Data.MySqlClient.MySqlConnection.ConnectionTimeout">
+            <summary>
+            Gets the time (in seconds) to wait while trying to establish a connection
+            before terminating the attempt and generating an error. This value
+            is controlled by <see cref="P:MySql.Data.MySqlClient.MySqlConnectionStringBuilder.ConnectionTimeout"/>,
+            which defaults to 15 seconds.
+            </summary>
+        </member>
+        <member name="M:MySql.Data.MySqlClient.MySqlConnection.CloneWith(System.String)">
+            <summary>
+            Returns an unopened copy of this connection with a new connection string. If the <c>Password</c>
+            in <paramref name="connectionString"/> is not set, the password from this connection will be used.
+            This allows creating a new connection with the same security information while changing other options,
+            such as database or pooling.
+            </summary>
+            <param name="connectionString">The new connection string to be used.</param>
+            <returns>A new <see cref="T:MySql.Data.MySqlClient.MySqlConnection"/> with different connection string options but
+            the same password as this connection (unless overridden by <paramref name="connectionString"/>).</returns>
+        </member>
+        <member name="T:MySql.Data.MySqlClient.MySqlConnectionProtocol">
+            <summary>
+            Specifies the type of connection to make to the server.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlConnectionProtocol.Sockets">
+            <summary>
+            TCP/IP connection.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlConnectionProtocol.Pipe">
+            <summary>
+            Named pipe connection. Only works on Windows.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlConnectionProtocol.UnixSocket">
+            <summary>
+            Unix domain socket connection. Only works on Unix/Linux.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlConnectionProtocol.SharedMemory">
+            <summary>
+            Shared memory connection. Not currently supported.
+            </summary>
+        </member>
+        <member name="P:MySql.Data.MySqlClient.MySqlConnectionStringBuilder.ConnectionTimeout">
+            <summary>
+            The length of time (in seconds) to wait for a connection to the server before terminating the attempt and generating an error.
+            The default value is 15.
+            </summary>
+        </member>
+        <member name="T:MySql.Data.MySqlClient.MySqlDateTimeKind">
+            <summary>
+            The <see cref="T:System.DateTimeKind" /> used when reading <see cref="T:System.DateTime" /> from the database.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlDateTimeKind.Unspecified">
+            <summary>
+            Use <see cref="F:System.DateTimeKind.Unspecified" /> when reading; allow any <see cref="T:System.DateTimeKind" /> in command parameters.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlDateTimeKind.Utc">
+            <summary>
+            Use <see cref="F:System.DateTimeKind.Utc" /> when reading; reject <see cref="F:System.DateTimeKind.Local" /> in command parameters.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlDateTimeKind.Local">
+            <summary>
+            Use <see cref="F:System.DateTimeKind.Local" /> when reading; reject <see cref="F:System.DateTimeKind.Utc" /> in command parameters.
+            </summary>
+        </member>
+        <member name="T:MySql.Data.MySqlClient.MySqlErrorCode">
+            <summary>
+            MySQL Server error codes. Taken from <a href="https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html">Server Error Codes and Messages</a>.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CommandTimeoutExpired">
+            <summary>
+            The timeout period specified by <see cref="P:MySql.Data.MySqlClient.MySqlCommand.CommandTimeout"/> elapsed before the operation completed.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.HashCheck">
+            <summary>
+            ER_HASHCHK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ISAMCheck">
+            <summary>
+            ER_NISAMCHK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.No">
+            <summary>
+            ER_NO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.Yes">
+            <summary>
+            ER_YES
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotCreateFile">
+            <summary>
+            ER_CANT_CREATE_FILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotCreateTable">
+            <summary>
+            ER_CANT_CREATE_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotCreateDatabase">
+            <summary>
+            ER_CANT_CREATE_DB
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DatabaseCreateExists">
+            <summary>
+            ER_DB_CREATE_EXISTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DatabaseDropExists">
+            <summary>
+            ER_DB_DROP_EXISTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DatabaseDropDelete">
+            <summary>
+            ER_DB_DROP_DELETE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DatabaseDropRemoveDir">
+            <summary>
+            ER_DB_DROP_RMDIR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotDeleteFile">
+            <summary>
+            ER_CANT_DELETE_FILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotFindSystemRecord">
+            <summary>
+            ER_CANT_FIND_SYSTEM_REC
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotGetStatus">
+            <summary>
+            ER_CANT_GET_STAT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotGetWorkingDirectory">
+            <summary>
+            ER_CANT_GET_WD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotLock">
+            <summary>
+            ER_CANT_LOCK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotOpenFile">
+            <summary>
+            ER_CANT_OPEN_FILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileNotFound">
+            <summary>
+            ER_FILE_NOT_FOUND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotReadDirectory">
+            <summary>
+            ER_CANT_READ_DIR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotSetWorkingDirectory">
+            <summary>
+            ER_CANT_SET_WD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CheckRead">
+            <summary>
+            ER_CHECKREAD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DiskFull">
+            <summary>
+            ER_DISK_FULL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicateKey">
+            <summary>
+            ER_DUP_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorOnClose">
+            <summary>
+            ER_ERROR_ON_CLOSE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorOnRead">
+            <summary>
+            ER_ERROR_ON_READ
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorOnRename">
+            <summary>
+            ER_ERROR_ON_RENAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorOnWrite">
+            <summary>
+            ER_ERROR_ON_WRITE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileUsed">
+            <summary>
+            ER_FILE_USED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileSortAborted">
+            <summary>
+            ER_FILSORT_ABORT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FormNotFound">
+            <summary>
+            ER_FORM_NOT_FOUND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.GetErrorNumber">
+            <summary>
+            ER_GET_ERRNO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IllegalHA">
+            <summary>
+            ER_ILLEGAL_HA
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.KeyNotFound">
+            <summary>
+            ER_KEY_NOT_FOUND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NotFormFile">
+            <summary>
+            ER_NOT_FORM_FILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NotKeyFile">
+            <summary>
+            ER_NOT_KEYFILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OldKeyFile">
+            <summary>
+            ER_OLD_KEYFILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OpenAsReadOnly">
+            <summary>
+            ER_OPEN_AS_READONLY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OutOfMemory">
+            <summary>
+            ER_OUTOFMEMORY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OutOfSortMemory">
+            <summary>
+            ER_OUT_OF_SORTMEMORY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnexepectedEOF">
+            <summary>
+            ER_UNEXPECTED_EOF
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ConnectionCountError">
+            <summary>
+            ER_CON_COUNT_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OutOfResources">
+            <summary>
+            ER_OUT_OF_RESOURCES
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnableToConnectToHost">
+            <summary>
+            ER_BAD_HOST_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.HandshakeError">
+            <summary>
+            ER_HANDSHAKE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DatabaseAccessDenied">
+            <summary>
+            ER_DBACCESS_DENIED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AccessDenied">
+            <summary>
+            ER_ACCESS_DENIED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoDatabaseSelected">
+            <summary>
+            ER_NO_DB_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownCommand">
+            <summary>
+            ER_UNKNOWN_COM_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ColumnCannotBeNull">
+            <summary>
+            ER_BAD_NULL_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownDatabase">
+            <summary>
+            ER_BAD_DB_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableExists">
+            <summary>
+            ER_TABLE_EXISTS_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BadTable">
+            <summary>
+            ER_BAD_TABLE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonUnique">
+            <summary>
+            ER_NON_UNIQ_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ServerShutdown">
+            <summary>
+            ER_SERVER_SHUTDOWN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BadFieldError">
+            <summary>
+            ER_BAD_FIELD_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongFieldWithGroup">
+            <summary>
+            ER_WRONG_FIELD_WITH_GROUP
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongGroupField">
+            <summary>
+            ER_WRONG_GROUP_FIELD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongSumSelected">
+            <summary>
+            ER_WRONG_SUM_SELECT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongValueCount">
+            <summary>
+            ER_WRONG_VALUE_COUNT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooLongIdentifier">
+            <summary>
+            ER_TOO_LONG_IDENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicateFieldName">
+            <summary>
+            ER_DUP_FIELDNAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicateKeyName">
+            <summary>
+            ER_DUP_KEYNAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicateKeyEntry">
+            <summary>
+            ER_DUP_ENTRY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongFieldSpecifier">
+            <summary>
+            ER_WRONG_FIELD_SPEC
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ParseError">
+            <summary>
+            You have an error in your SQL syntax (ER_PARSE_ERROR).
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EmptyQuery">
+            <summary>
+            ER_EMPTY_QUERY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonUniqueTable">
+            <summary>
+            ER_NONUNIQ_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.InvalidDefault">
+            <summary>
+            ER_INVALID_DEFAULT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MultiplePrimaryKey">
+            <summary>
+            ER_MULTIPLE_PRI_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyKeys">
+            <summary>
+            ER_TOO_MANY_KEYS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyKeysParts">
+            <summary>
+            ER_TOO_MANY_KEY_PARTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooLongKey">
+            <summary>
+            ER_TOO_LONG_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.KeyColumnDoesNotExist">
+            <summary>
+            ER_KEY_COLUMN_DOES_NOT_EXITS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BlobUsedAsKey">
+            <summary>
+            ER_BLOB_USED_AS_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooBigFieldLength">
+            <summary>
+            ER_TOO_BIG_FIELDLENGTH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongAutoKey">
+            <summary>
+            ER_WRONG_AUTO_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.Ready">
+            <summary>
+            ER_READY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NormalShutdown">
+            <summary>
+            ER_NORMAL_SHUTDOWN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.GotSignal">
+            <summary>
+            ER_GOT_SIGNAL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ShutdownComplete">
+            <summary>
+            ER_SHUTDOWN_COMPLETE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForcingClose">
+            <summary>
+            ER_FORCING_CLOSE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IPSocketError">
+            <summary>
+            ER_IPSOCK_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoSuchIndex">
+            <summary>
+            ER_NO_SUCH_INDEX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongFieldTerminators">
+            <summary>
+            ER_WRONG_FIELD_TERMINATORS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BlobsAndNoTerminated">
+            <summary>
+            ER_BLOBS_AND_NO_TERMINATED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TextFileNotReadable">
+            <summary>
+            ER_TEXTFILE_NOT_READABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileExists">
+            <summary>
+            ER_FILE_EXISTS_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LoadInfo">
+            <summary>
+            ER_LOAD_INFO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AlterInfo">
+            <summary>
+            ER_ALTER_INFO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongSubKey">
+            <summary>
+            ER_WRONG_SUB_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotRemoveAllFields">
+            <summary>
+            ER_CANT_REMOVE_ALL_FIELDS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotDropFieldOrKey">
+            <summary>
+            ER_CANT_DROP_FIELD_OR_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.InsertInfo">
+            <summary>
+            ER_INSERT_INFO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UpdateTableUsed">
+            <summary>
+            ER_UPDATE_TABLE_USED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoSuchThread">
+            <summary>
+            ER_NO_SUCH_THREAD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.KillDenied">
+            <summary>
+            ER_KILL_DENIED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoTablesUsed">
+            <summary>
+            ER_NO_TABLES_USED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooBigSet">
+            <summary>
+            ER_TOO_BIG_SET
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoUniqueLogFile">
+            <summary>
+            ER_NO_UNIQUE_LOGFILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableNotLockedForWrite">
+            <summary>
+            ER_TABLE_NOT_LOCKED_FOR_WRITE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableNotLocked">
+            <summary>
+            ER_TABLE_NOT_LOCKED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BlobCannotHaveDefault">
+            <summary>
+            ER_BLOB_CANT_HAVE_DEFAULT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongDatabaseName">
+            <summary>
+            ER_WRONG_DB_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongTableName">
+            <summary>
+            ER_WRONG_TABLE_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooBigSelect">
+            <summary>
+            ER_TOO_BIG_SELECT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownError">
+            <summary>
+            ER_UNKNOWN_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownProcedure">
+            <summary>
+            ER_UNKNOWN_PROCEDURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongParameterCountToProcedure">
+            <summary>
+            ER_WRONG_PARAMCOUNT_TO_PROCEDURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongParametersToProcedure">
+            <summary>
+            ER_WRONG_PARAMETERS_TO_PROCEDURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownTable">
+            <summary>
+            ER_UNKNOWN_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FieldSpecifiedTwice">
+            <summary>
+            ER_FIELD_SPECIFIED_TWICE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.InvalidGroupFunctionUse">
+            <summary>
+            ER_INVALID_GROUP_FUNC_USE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnsupportedExtenstion">
+            <summary>
+            ER_UNSUPPORTED_EXTENSION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableMustHaveColumns">
+            <summary>
+            ER_TABLE_MUST_HAVE_COLUMNS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RecordFileFull">
+            <summary>
+            ER_RECORD_FILE_FULL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownCharacterSet">
+            <summary>
+            ER_UNKNOWN_CHARACTER_SET
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyTables">
+            <summary>
+            ER_TOO_MANY_TABLES
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyFields">
+            <summary>
+            ER_TOO_MANY_FIELDS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooBigRowSize">
+            <summary>
+            ER_TOO_BIG_ROWSIZE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StackOverrun">
+            <summary>
+            ER_STACK_OVERRUN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongOuterJoin">
+            <summary>
+            ER_WRONG_OUTER_JOIN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NullColumnInIndex">
+            <summary>
+            ER_NULL_COLUMN_IN_INDEX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotFindUDF">
+            <summary>
+            ER_CANT_FIND_UDF
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotInitializeUDF">
+            <summary>
+            ER_CANT_INITIALIZE_UDF
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UDFNoPaths">
+            <summary>
+            ER_UDF_NO_PATHS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UDFExists">
+            <summary>
+            ER_UDF_EXISTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotOpenLibrary">
+            <summary>
+            ER_CANT_OPEN_LIBRARY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotFindDLEntry">
+            <summary>
+            ER_CANT_FIND_DL_ENTRY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FunctionNotDefined">
+            <summary>
+            ER_FUNCTION_NOT_DEFINED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.HostIsBlocked">
+            <summary>
+            ER_HOST_IS_BLOCKED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.HostNotPrivileged">
+            <summary>
+            ER_HOST_NOT_PRIVILEGED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AnonymousUser">
+            <summary>
+            ER_PASSWORD_ANONYMOUS_USER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PasswordNotAllowed">
+            <summary>
+            ER_PASSWORD_NOT_ALLOWED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PasswordNoMatch">
+            <summary>
+            ER_PASSWORD_NO_MATCH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UpdateInfo">
+            <summary>
+            ER_UPDATE_INFO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotCreateThread">
+            <summary>
+            ER_CANT_CREATE_THREAD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongValueCountOnRow">
+            <summary>
+            ER_WRONG_VALUE_COUNT_ON_ROW
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotReopenTable">
+            <summary>
+            ER_CANT_REOPEN_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.InvalidUseOfNull">
+            <summary>
+            ER_INVALID_USE_OF_NULL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RegExpError">
+            <summary>
+            ER_REGEXP_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MixOfGroupFunctionAndFields">
+            <summary>
+            ER_MIX_OF_GROUP_FUNC_AND_FIELDS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonExistingGrant">
+            <summary>
+            ER_NONEXISTING_GRANT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableAccessDenied">
+            <summary>
+            ER_TABLEACCESS_DENIED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ColumnAccessDenied">
+            <summary>
+            ER_COLUMNACCESS_DENIED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IllegalGrantForTable">
+            <summary>
+            ER_ILLEGAL_GRANT_FOR_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.GrantWrongHostOrUser">
+            <summary>
+            ER_GRANT_WRONG_HOST_OR_USER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoSuchTable">
+            <summary>
+            ER_NO_SUCH_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonExistingTableGrant">
+            <summary>
+            ER_NONEXISTING_TABLE_GRANT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NotAllowedCommand">
+            <summary>
+            ER_NOT_ALLOWED_COMMAND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SyntaxError">
+            <summary>
+            ER_SYNTAX_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DelayedCannotChangeLock">
+            <summary>
+            ER_UNUSED1
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyDelayedThreads">
+            <summary>
+            ER_UNUSED2
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AbortingConnection">
+            <summary>
+            ER_ABORTING_CONNECTION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PacketTooLarge">
+            <summary>
+            ER_NET_PACKET_TOO_LARGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NetReadErrorFromPipe">
+            <summary>
+            ER_NET_READ_ERROR_FROM_PIPE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NetFCntlError">
+            <summary>
+            ER_NET_FCNTL_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NetPacketsOutOfOrder">
+            <summary>
+            ER_NET_PACKETS_OUT_OF_ORDER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NetUncompressError">
+            <summary>
+            ER_NET_UNCOMPRESS_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NetReadError">
+            <summary>
+            ER_NET_READ_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NetReadInterrupted">
+            <summary>
+            ER_NET_READ_INTERRUPTED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NetErrorOnWrite">
+            <summary>
+            ER_NET_ERROR_ON_WRITE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NetWriteInterrupted">
+            <summary>
+            ER_NET_WRITE_INTERRUPTED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooLongString">
+            <summary>
+            ER_TOO_LONG_STRING
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableCannotHandleBlob">
+            <summary>
+            ER_TABLE_CANT_HANDLE_BLOB
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableCannotHandleAutoIncrement">
+            <summary>
+            ER_TABLE_CANT_HANDLE_AUTO_INCREMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DelayedInsertTableLocked">
+            <summary>
+            ER_UNUSED3
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongColumnName">
+            <summary>
+            ER_WRONG_COLUMN_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongKeyColumn">
+            <summary>
+            ER_WRONG_KEY_COLUMN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongMergeTable">
+            <summary>
+            ER_WRONG_MRG_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicateUnique">
+            <summary>
+            ER_DUP_UNIQUE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BlobKeyWithoutLength">
+            <summary>
+            ER_BLOB_KEY_WITHOUT_LENGTH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PrimaryCannotHaveNull">
+            <summary>
+            ER_PRIMARY_CANT_HAVE_NULL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyRows">
+            <summary>
+            ER_TOO_MANY_ROWS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RequiresPrimaryKey">
+            <summary>
+            ER_REQUIRES_PRIMARY_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoRAIDCompiled">
+            <summary>
+            ER_NO_RAID_COMPILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UpdateWithoutKeysInSafeMode">
+            <summary>
+            ER_UPDATE_WITHOUT_KEY_IN_SAFE_MODE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.KeyDoesNotExist">
+            <summary>
+            ER_KEY_DOES_NOT_EXITS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CheckNoSuchTable">
+            <summary>
+            ER_CHECK_NO_SUCH_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CheckNotImplemented">
+            <summary>
+            ER_CHECK_NOT_IMPLEMENTED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotDoThisDuringATransaction">
+            <summary>
+            ER_CANT_DO_THIS_DURING_AN_TRANSACTION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorDuringCommit">
+            <summary>
+            ER_ERROR_DURING_COMMIT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorDuringRollback">
+            <summary>
+            ER_ERROR_DURING_ROLLBACK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorDuringFlushLogs">
+            <summary>
+            ER_ERROR_DURING_FLUSH_LOGS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorDuringCheckpoint">
+            <summary>
+            ER_ERROR_DURING_CHECKPOINT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NewAbortingConnection">
+            <summary>
+            ER_NEW_ABORTING_CONNECTION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DumpNotImplemented">
+            <summary>
+            ER_DUMP_NOT_IMPLEMENTED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FlushMasterBinLogClosed">
+            <summary>
+            ER_FLUSH_MASTER_BINLOG_CLOSED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IndexRebuild">
+            <summary>
+            ER_INDEX_REBUILD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MasterError">
+            <summary>
+            ER_MASTER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MasterNetRead">
+            <summary>
+            ER_MASTER_NET_READ
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MasterNetWrite">
+            <summary>
+            ER_MASTER_NET_WRITE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FullTextMatchingKeyNotFound">
+            <summary>
+            ER_FT_MATCHING_KEY_NOT_FOUND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LockOrActiveTransaction">
+            <summary>
+            ER_LOCK_OR_ACTIVE_TRANSACTION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownSystemVariable">
+            <summary>
+            ER_UNKNOWN_SYSTEM_VARIABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CrashedOnUsage">
+            <summary>
+            ER_CRASHED_ON_USAGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CrashedOnRepair">
+            <summary>
+            ER_CRASHED_ON_REPAIR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningNotCompleteRollback">
+            <summary>
+            ER_WARNING_NOT_COMPLETE_ROLLBACK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TransactionCacheFull">
+            <summary>
+            ER_TRANS_CACHE_FULL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveMustStop">
+            <summary>
+            ER_SLAVE_MUST_STOP
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveNotRunning">
+            <summary>
+            ER_SLAVE_NOT_RUNNING
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BadSlave">
+            <summary>
+            ER_BAD_SLAVE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MasterInfo">
+            <summary>
+            ER_MASTER_INFO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveThread">
+            <summary>
+            ER_SLAVE_THREAD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyUserConnections">
+            <summary>
+            ER_TOO_MANY_USER_CONNECTIONS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SetConstantsOnly">
+            <summary>
+            ER_SET_CONSTANTS_ONLY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LockWaitTimeout">
+            <summary>
+            ER_LOCK_WAIT_TIMEOUT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LockTableFull">
+            <summary>
+            ER_LOCK_TABLE_FULL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ReadOnlyTransaction">
+            <summary>
+            ER_READ_ONLY_TRANSACTION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DropDatabaseWithReadLock">
+            <summary>
+            ER_DROP_DB_WITH_READ_LOCK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CreateDatabaseWithReadLock">
+            <summary>
+            ER_CREATE_DB_WITH_READ_LOCK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongArguments">
+            <summary>
+            ER_WRONG_ARGUMENTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoPermissionToCreateUser">
+            <summary>
+            ER_NO_PERMISSION_TO_CREATE_USER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnionTablesInDifferentDirectory">
+            <summary>
+            ER_UNION_TABLES_IN_DIFFERENT_DIR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LockDeadlock">
+            <summary>
+            ER_LOCK_DEADLOCK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableCannotHandleFullText">
+            <summary>
+            ER_TABLE_CANT_HANDLE_FT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotAddForeignConstraint">
+            <summary>
+            ER_CANNOT_ADD_FOREIGN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoReferencedRow">
+            <summary>
+            ER_NO_REFERENCED_ROW
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RowIsReferenced">
+            <summary>
+            ER_ROW_IS_REFERENCED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ConnectToMaster">
+            <summary>
+            ER_CONNECT_TO_MASTER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.QueryOnMaster">
+            <summary>
+            ER_QUERY_ON_MASTER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorWhenExecutingCommand">
+            <summary>
+            ER_ERROR_WHEN_EXECUTING_COMMAND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongUsage">
+            <summary>
+            ER_WRONG_USAGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongNumberOfColumnsInSelect">
+            <summary>
+            ER_WRONG_NUMBER_OF_COLUMNS_IN_SELECT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotUpdateWithReadLock">
+            <summary>
+            ER_CANT_UPDATE_WITH_READLOCK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MixingNotAllowed">
+            <summary>
+            ER_MIXING_NOT_ALLOWED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicateArgument">
+            <summary>
+            ER_DUP_ARGUMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UserLimitReached">
+            <summary>
+            ER_USER_LIMIT_REACHED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SpecifiedAccessDeniedError">
+            <summary>
+            ER_SPECIFIC_ACCESS_DENIED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LocalVariableError">
+            <summary>
+            ER_LOCAL_VARIABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.GlobalVariableError">
+            <summary>
+            ER_GLOBAL_VARIABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NotDefaultError">
+            <summary>
+            ER_NO_DEFAULT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongValueForVariable">
+            <summary>
+            ER_WRONG_VALUE_FOR_VAR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongTypeForVariable">
+            <summary>
+            ER_WRONG_TYPE_FOR_VAR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.VariableCannotBeRead">
+            <summary>
+            ER_VAR_CANT_BE_READ
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotUseOptionHere">
+            <summary>
+            ER_CANT_USE_OPTION_HERE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NotSupportedYet">
+            <summary>
+            ER_NOT_SUPPORTED_YET
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MasterFatalErrorReadingBinLog">
+            <summary>
+            ER_MASTER_FATAL_ERROR_READING_BINLOG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveIgnoredTable">
+            <summary>
+            ER_SLAVE_IGNORED_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IncorrectGlobalLocalVariable">
+            <summary>
+            ER_INCORRECT_GLOBAL_LOCAL_VAR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongForeignKeyDefinition">
+            <summary>
+            ER_WRONG_FK_DEF
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.KeyReferenceDoesNotMatchTableReference">
+            <summary>
+            ER_KEY_REF_DO_NOT_MATCH_TABLE_REF
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OpearnColumnsError">
+            <summary>
+            ER_OPERAND_COLUMNS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SubQueryNoOneRow">
+            <summary>
+            ER_SUBQUERY_NO_1_ROW
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownStatementHandler">
+            <summary>
+            ER_UNKNOWN_STMT_HANDLER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CorruptHelpDatabase">
+            <summary>
+            ER_CORRUPT_HELP_DB
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CyclicReference">
+            <summary>
+            ER_CYCLIC_REFERENCE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AutoConvert">
+            <summary>
+            ER_AUTO_CONVERT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IllegalReference">
+            <summary>
+            ER_ILLEGAL_REFERENCE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DerivedMustHaveAlias">
+            <summary>
+            ER_DERIVED_MUST_HAVE_ALIAS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SelectReduced">
+            <summary>
+            ER_SELECT_REDUCED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableNameNotAllowedHere">
+            <summary>
+            ER_TABLENAME_NOT_ALLOWED_HERE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NotSupportedAuthMode">
+            <summary>
+            ER_NOT_SUPPORTED_AUTH_MODE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SpatialCannotHaveNull">
+            <summary>
+            ER_SPATIAL_CANT_HAVE_NULL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CollationCharsetMismatch">
+            <summary>
+            ER_COLLATION_CHARSET_MISMATCH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveWasRunning">
+            <summary>
+            ER_SLAVE_WAS_RUNNING
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveWasNotRunning">
+            <summary>
+            ER_SLAVE_WAS_NOT_RUNNING
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooBigForUncompress">
+            <summary>
+            ER_TOO_BIG_FOR_UNCOMPRESS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ZipLibMemoryError">
+            <summary>
+            ER_ZLIB_Z_MEM_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ZipLibBufferError">
+            <summary>
+            ER_ZLIB_Z_BUF_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ZipLibDataError">
+            <summary>
+            ER_ZLIB_Z_DATA_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CutValueGroupConcat">
+            <summary>
+            ER_CUT_VALUE_GROUP_CONCAT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningTooFewRecords">
+            <summary>
+            ER_WARN_TOO_FEW_RECORDS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningTooManyRecords">
+            <summary>
+            ER_WARN_TOO_MANY_RECORDS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningNullToNotNull">
+            <summary>
+            ER_WARN_NULL_TO_NOTNULL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningDataOutOfRange">
+            <summary>
+            ER_WARN_DATA_OUT_OF_RANGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WaningDataTruncated">
+            <summary>
+            WARN_DATA_TRUNCATED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WaningUsingOtherHandler">
+            <summary>
+            ER_WARN_USING_OTHER_HANDLER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotAggregateTwoCollations">
+            <summary>
+            ER_CANT_AGGREGATE_2COLLATIONS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DropUserError">
+            <summary>
+            ER_DROP_USER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RevokeGrantsError">
+            <summary>
+            ER_REVOKE_GRANTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotAggregateThreeCollations">
+            <summary>
+            ER_CANT_AGGREGATE_3COLLATIONS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotAggregateNCollations">
+            <summary>
+            ER_CANT_AGGREGATE_NCOLLATIONS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.VariableIsNotStructure">
+            <summary>
+            ER_VARIABLE_IS_NOT_STRUCT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownCollation">
+            <summary>
+            ER_UNKNOWN_COLLATION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveIgnoreSSLParameters">
+            <summary>
+            ER_SLAVE_IGNORED_SSL_PARAMS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ServerIsInSecureAuthMode">
+            <summary>
+            ER_SERVER_IS_IN_SECURE_AUTH_MODE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WaningFieldResolved">
+            <summary>
+            ER_WARN_FIELD_RESOLVED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BadSlaveUntilCondition">
+            <summary>
+            ER_BAD_SLAVE_UNTIL_COND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MissingSkipSlave">
+            <summary>
+            ER_MISSING_SKIP_SLAVE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ErrorUntilConditionIgnored">
+            <summary>
+            ER_UNTIL_COND_IGNORED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongNameForIndex">
+            <summary>
+            ER_WRONG_NAME_FOR_INDEX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongNameForCatalog">
+            <summary>
+            ER_WRONG_NAME_FOR_CATALOG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningQueryCacheResize">
+            <summary>
+            ER_WARN_QC_RESIZE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BadFullTextColumn">
+            <summary>
+            ER_BAD_FT_COLUMN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownKeyCache">
+            <summary>
+            ER_UNKNOWN_KEY_CACHE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningHostnameWillNotWork">
+            <summary>
+            ER_WARN_HOSTNAME_WONT_WORK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownStorageEngine">
+            <summary>
+            ER_UNKNOWN_STORAGE_ENGINE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WaningDeprecatedSyntax">
+            <summary>
+            ER_WARN_DEPRECATED_SYNTAX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonUpdateableTable">
+            <summary>
+            ER_NON_UPDATABLE_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FeatureDisabled">
+            <summary>
+            ER_FEATURE_DISABLED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OptionPreventsStatement">
+            <summary>
+            ER_OPTION_PREVENTS_STATEMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicatedValueInType">
+            <summary>
+            ER_DUPLICATED_VALUE_IN_TYPE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TruncatedWrongValue">
+            <summary>
+            ER_TRUNCATED_WRONG_VALUE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooMuchAutoTimestampColumns">
+            <summary>
+            ER_TOO_MUCH_AUTO_TIMESTAMP_COLS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.InvalidOnUpdate">
+            <summary>
+            ER_INVALID_ON_UPDATE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnsupportedPreparedStatement">
+            <summary>
+            ER_UNSUPPORTED_PS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.GetErroMessage">
+            <summary>
+            ER_GET_ERRMSG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.GetTemporaryErrorMessage">
+            <summary>
+            ER_GET_TEMPORARY_ERRMSG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownTimeZone">
+            <summary>
+            ER_UNKNOWN_TIME_ZONE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningInvalidTimestamp">
+            <summary>
+            ER_WARN_INVALID_TIMESTAMP
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.InvalidCharacterString">
+            <summary>
+            ER_INVALID_CHARACTER_STRING
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningAllowedPacketOverflowed">
+            <summary>
+            ER_WARN_ALLOWED_PACKET_OVERFLOWED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ConflictingDeclarations">
+            <summary>
+            ER_CONFLICTING_DECLARATIONS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNoRecursiveCreate">
+            <summary>
+            ER_SP_NO_RECURSIVE_CREATE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureAlreadyExists">
+            <summary>
+            ER_SP_ALREADY_EXISTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureDoesNotExist">
+            <summary>
+            ER_SP_DOES_NOT_EXIST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureDropFailed">
+            <summary>
+            ER_SP_DROP_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureStoreFailed">
+            <summary>
+            ER_SP_STORE_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureLiLabelMismatch">
+            <summary>
+            ER_SP_LILABEL_MISMATCH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureLabelRedefine">
+            <summary>
+            ER_SP_LABEL_REDEFINE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureLabelMismatch">
+            <summary>
+            ER_SP_LABEL_MISMATCH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureUninitializedVariable">
+            <summary>
+            ER_SP_UNINIT_VAR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureBadSelect">
+            <summary>
+            ER_SP_BADSELECT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureBadReturn">
+            <summary>
+            ER_SP_BADRETURN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureBadStatement">
+            <summary>
+            ER_SP_BADSTATEMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UpdateLogDeprecatedIgnored">
+            <summary>
+            ER_UPDATE_LOG_DEPRECATED_IGNORED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UpdateLogDeprecatedTranslated">
+            <summary>
+            ER_UPDATE_LOG_DEPRECATED_TRANSLATED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.QueryInterrupted">
+            <summary>
+            Query execution was interrupted (ER_QUERY_INTERRUPTED).
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNumberOfArguments">
+            <summary>
+            ER_SP_WRONG_NO_OF_ARGS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureConditionMismatch">
+            <summary>
+            ER_SP_COND_MISMATCH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNoReturn">
+            <summary>
+            ER_SP_NORETURN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNoReturnEnd">
+            <summary>
+            ER_SP_NORETURNEND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureBadCursorQuery">
+            <summary>
+            ER_SP_BAD_CURSOR_QUERY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureBadCursorSelect">
+            <summary>
+            ER_SP_BAD_CURSOR_SELECT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureCursorMismatch">
+            <summary>
+            ER_SP_CURSOR_MISMATCH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureAlreadyOpen">
+            <summary>
+            ER_SP_CURSOR_ALREADY_OPEN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureCursorNotOpen">
+            <summary>
+            ER_SP_CURSOR_NOT_OPEN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureUndeclaredVariabel">
+            <summary>
+            ER_SP_UNDECLARED_VAR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureWrongNumberOfFetchArguments">
+            <summary>
+            ER_SP_WRONG_NO_OF_FETCH_ARGS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureFetchNoData">
+            <summary>
+            ER_SP_FETCH_NO_DATA
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureDuplicateParameter">
+            <summary>
+            ER_SP_DUP_PARAM
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureDuplicateVariable">
+            <summary>
+            ER_SP_DUP_VAR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureDuplicateCondition">
+            <summary>
+            ER_SP_DUP_COND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureDuplicateCursor">
+            <summary>
+            ER_SP_DUP_CURS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureCannotAlter">
+            <summary>
+            ER_SP_CANT_ALTER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureSubSelectNYI">
+            <summary>
+            ER_SP_SUBSELECT_NYI
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StatementNotAllowedInStoredFunctionOrTrigger">
+            <summary>
+            ER_STMT_NOT_ALLOWED_IN_SF_OR_TRG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureVariableConditionAfterCursorHandler">
+            <summary>
+            ER_SP_VARCOND_AFTER_CURSHNDLR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureCursorAfterHandler">
+            <summary>
+            ER_SP_CURSOR_AFTER_HANDLER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureCaseNotFound">
+            <summary>
+            ER_SP_CASE_NOT_FOUND
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileParserTooBigFile">
+            <summary>
+            ER_FPARSER_TOO_BIG_FILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileParserBadHeader">
+            <summary>
+            ER_FPARSER_BAD_HEADER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileParserEOFInComment">
+            <summary>
+            ER_FPARSER_EOF_IN_COMMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileParserErrorInParameter">
+            <summary>
+            ER_FPARSER_ERROR_IN_PARAMETER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileParserEOFInUnknownParameter">
+            <summary>
+            ER_FPARSER_EOF_IN_UNKNOWN_PARAMETER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewNoExplain">
+            <summary>
+            ER_VIEW_NO_EXPLAIN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FrmUnknownType">
+            <summary>
+            ER_FRM_UNKNOWN_TYPE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongObject">
+            <summary>
+            ER_WRONG_OBJECT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonUpdateableColumn">
+            <summary>
+            ER_NONUPDATEABLE_COLUMN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewSelectDerived">
+            <summary>
+            ER_VIEW_SELECT_DERIVED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewSelectClause">
+            <summary>
+            ER_VIEW_SELECT_CLAUSE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewSelectVariable">
+            <summary>
+            ER_VIEW_SELECT_VARIABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewSelectTempTable">
+            <summary>
+            ER_VIEW_SELECT_TMPTABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewWrongList">
+            <summary>
+            ER_VIEW_WRONG_LIST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningViewMerge">
+            <summary>
+            ER_WARN_VIEW_MERGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningViewWithoutKey">
+            <summary>
+            ER_WARN_VIEW_WITHOUT_KEY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewInvalid">
+            <summary>
+            ER_VIEW_INVALID
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNoDropStoredProcedure">
+            <summary>
+            ER_SP_NO_DROP_SP
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureGotoInHandler">
+            <summary>
+            ER_SP_GOTO_IN_HNDLR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerAlreadyExists">
+            <summary>
+            ER_TRG_ALREADY_EXISTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerDoesNotExist">
+            <summary>
+            ER_TRG_DOES_NOT_EXIST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerOnViewOrTempTable">
+            <summary>
+            ER_TRG_ON_VIEW_OR_TEMP_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerCannotChangeRow">
+            <summary>
+            ER_TRG_CANT_CHANGE_ROW
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerNoSuchRowInTrigger">
+            <summary>
+            ER_TRG_NO_SUCH_ROW_IN_TRG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoDefaultForField">
+            <summary>
+            ER_NO_DEFAULT_FOR_FIELD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DivisionByZero">
+            <summary>
+            ER_DIVISION_BY_ZERO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TruncatedWrongValueForField">
+            <summary>
+            ER_TRUNCATED_WRONG_VALUE_FOR_FIELD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IllegalValueForType">
+            <summary>
+            ER_ILLEGAL_VALUE_FOR_TYPE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewNonUpdatableCheck">
+            <summary>
+            ER_VIEW_NONUPD_CHECK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewCheckFailed">
+            <summary>
+            ER_VIEW_CHECK_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PrecedureAccessDenied">
+            <summary>
+            ER_PROCACCESS_DENIED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RelayLogFail">
+            <summary>
+            ER_RELAY_LOG_FAIL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PasswordLength">
+            <summary>
+            ER_PASSWD_LENGTH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnknownTargetBinLog">
+            <summary>
+            ER_UNKNOWN_TARGET_BINLOG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IOErrorLogIndexRead">
+            <summary>
+            ER_IO_ERR_LOG_INDEX_READ
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogPurgeProhibited">
+            <summary>
+            ER_BINLOG_PURGE_PROHIBITED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FSeekFail">
+            <summary>
+            ER_FSEEK_FAIL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogPurgeFatalError">
+            <summary>
+            ER_BINLOG_PURGE_FATAL_ERR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LogInUse">
+            <summary>
+            ER_LOG_IN_USE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LogPurgeUnknownError">
+            <summary>
+            ER_LOG_PURGE_UNKNOWN_ERR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RelayLogInit">
+            <summary>
+            ER_RELAY_LOG_INIT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoBinaryLogging">
+            <summary>
+            ER_NO_BINARY_LOGGING
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ReservedSyntax">
+            <summary>
+            ER_RESERVED_SYNTAX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WSAStartupFailed">
+            <summary>
+            ER_WSAS_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DifferentGroupsProcedure">
+            <summary>
+            ER_DIFF_GROUPS_PROC
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoGroupForProcedure">
+            <summary>
+            ER_NO_GROUP_FOR_PROC
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OrderWithProcedure">
+            <summary>
+            ER_ORDER_WITH_PROC
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LoggingProhibitsChangingOf">
+            <summary>
+            ER_LOGGING_PROHIBIT_CHANGING_OF
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoFileMapping">
+            <summary>
+            ER_NO_FILE_MAPPING
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongMagic">
+            <summary>
+            ER_WRONG_MAGIC
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PreparedStatementManyParameters">
+            <summary>
+            ER_PS_MANY_PARAM
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.KeyPartZero">
+            <summary>
+            ER_KEY_PART_0
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewChecksum">
+            <summary>
+            ER_VIEW_CHECKSUM
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewMultiUpdate">
+            <summary>
+            ER_VIEW_MULTIUPDATE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewNoInsertFieldList">
+            <summary>
+            ER_VIEW_NO_INSERT_FIELD_LIST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewDeleteMergeView">
+            <summary>
+            ER_VIEW_DELETE_MERGE_VIEW
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotUser">
+            <summary>
+            ER_CANNOT_USER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XAERNotA">
+            <summary>
+            ER_XAER_NOTA
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XAERInvalid">
+            <summary>
+            ER_XAER_INVAL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XAERRemoveFail">
+            <summary>
+            ER_XAER_RMFAIL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XAEROutside">
+            <summary>
+            ER_XAER_OUTSIDE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XAERRemoveError">
+            <summary>
+            ER_XAER_RMERR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XARBRollback">
+            <summary>
+            ER_XA_RBROLLBACK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonExistingProcedureGrant">
+            <summary>
+            ER_NONEXISTING_PROC_GRANT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ProcedureAutoGrantFail">
+            <summary>
+            ER_PROC_AUTO_GRANT_FAIL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ProcedureAutoRevokeFail">
+            <summary>
+            ER_PROC_AUTO_REVOKE_FAIL
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DataTooLong">
+            <summary>
+            ER_DATA_TOO_LONG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureSQLState">
+            <summary>
+            ER_SP_BAD_SQLSTATE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StartupError">
+            <summary>
+            ER_STARTUP
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LoadFromFixedSizeRowsToVariable">
+            <summary>
+            ER_LOAD_FROM_FIXED_SIZE_ROWS_TO_VAR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotCreateUserWithGrant">
+            <summary>
+            ER_CANT_CREATE_USER_WITH_GRANT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongValueForType">
+            <summary>
+            ER_WRONG_VALUE_FOR_TYPE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableDefinitionChanged">
+            <summary>
+            ER_TABLE_DEF_CHANGED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureDuplicateHandler">
+            <summary>
+            ER_SP_DUP_HANDLER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNotVariableArgument">
+            <summary>
+            ER_SP_NOT_VAR_ARG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNoReturnSet">
+            <summary>
+            ER_SP_NO_RETSET
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotCreateGeometryObject">
+            <summary>
+            ER_CANT_CREATE_GEOMETRY_OBJECT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FailedRoutineBreaksBinLog">
+            <summary>
+            ER_FAILED_ROUTINE_BREAK_BINLOG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogUnsafeRoutine">
+            <summary>
+            ER_BINLOG_UNSAFE_ROUTINE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogCreateRoutineNeedSuper">
+            <summary>
+            ER_BINLOG_CREATE_ROUTINE_NEED_SUPER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ExecuteStatementWithOpenCursor">
+            <summary>
+            ER_EXEC_STMT_WITH_OPEN_CURSOR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StatementHasNoOpenCursor">
+            <summary>
+            ER_STMT_HAS_NO_OPEN_CURSOR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CommitNotAllowedIfStoredFunctionOrTrigger">
+            <summary>
+            ER_COMMIT_NOT_ALLOWED_IN_SF_OR_TRG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoDefaultForViewField">
+            <summary>
+            ER_NO_DEFAULT_FOR_VIEW_FIELD
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNoRecursion">
+            <summary>
+            ER_SP_NO_RECURSION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooBigScale">
+            <summary>
+            ER_TOO_BIG_SCALE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooBigPrecision">
+            <summary>
+            ER_TOO_BIG_PRECISION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MBiggerThanD">
+            <summary>
+            ER_M_BIGGER_THAN_D
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongLockOfSystemTable">
+            <summary>
+            ER_WRONG_LOCK_OF_SYSTEM_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ConnectToForeignDataSource">
+            <summary>
+            ER_CONNECT_TO_FOREIGN_DATA_SOURCE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.QueryOnForeignDataSource">
+            <summary>
+            ER_QUERY_ON_FOREIGN_DATA_SOURCE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForeignDataSourceDoesNotExist">
+            <summary>
+            ER_FOREIGN_DATA_SOURCE_DOESNT_EXIST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForeignDataStringInvalidCannotCreate">
+            <summary>
+            ER_FOREIGN_DATA_STRING_INVALID_CANT_CREATE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForeignDataStringInvalid">
+            <summary>
+            ER_FOREIGN_DATA_STRING_INVALID
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotCreateFederatedTable">
+            <summary>
+            ER_CANT_CREATE_FEDERATED_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerInWrongSchema">
+            <summary>
+            ER_TRG_IN_WRONG_SCHEMA
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StackOverrunNeedMore">
+            <summary>
+            ER_STACK_OVERRUN_NEED_MORE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooLongBody">
+            <summary>
+            ER_TOO_LONG_BODY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningCannotDropDefaultKeyCache">
+            <summary>
+            ER_WARN_CANT_DROP_DEFAULT_KEYCACHE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooBigDisplayWidth">
+            <summary>
+            ER_TOO_BIG_DISPLAYWIDTH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XAERDuplicateID">
+            <summary>
+            ER_XAER_DUPID
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DateTimeFunctionOverflow">
+            <summary>
+            ER_DATETIME_FUNCTION_OVERFLOW
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotUpdateUsedTableInStoredFunctionOrTrigger">
+            <summary>
+            ER_CANT_UPDATE_USED_TABLE_IN_SF_OR_TRG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewPreventUpdate">
+            <summary>
+            ER_VIEW_PREVENT_UPDATE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PreparedStatementNoRecursion">
+            <summary>
+            ER_PS_NO_RECURSION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureCannotSetAutoCommit">
+            <summary>
+            ER_SP_CANT_SET_AUTOCOMMIT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MalformedDefiner">
+            <summary>
+            ER_MALFORMED_DEFINER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewFrmNoUser">
+            <summary>
+            ER_VIEW_FRM_NO_USER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewOtherUser">
+            <summary>
+            ER_VIEW_OTHER_USER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoSuchUser">
+            <summary>
+            ER_NO_SUCH_USER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForbidSchemaChange">
+            <summary>
+            ER_FORBID_SCHEMA_CHANGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RowIsReferenced2">
+            <summary>
+            ER_ROW_IS_REFERENCED_2
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoReferencedRow2">
+            <summary>
+            ER_NO_REFERENCED_ROW_2
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureBadVariableShadow">
+            <summary>
+            ER_SP_BAD_VAR_SHADOW
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerNoDefiner">
+            <summary>
+            ER_TRG_NO_DEFINER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OldFileFormat">
+            <summary>
+            ER_OLD_FILE_FORMAT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureRecursionLimit">
+            <summary>
+            ER_SP_RECURSION_LIMIT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureTableCorrupt">
+            <summary>
+            ER_SP_PROC_TABLE_CORRUPT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureWrongName">
+            <summary>
+            ER_SP_WRONG_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableNeedsUpgrade">
+            <summary>
+            ER_TABLE_NEEDS_UPGRADE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredProcedureNoAggregate">
+            <summary>
+            ER_SP_NO_AGGREGATE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MaxPreparedStatementCountReached">
+            <summary>
+            ER_MAX_PREPARED_STMT_COUNT_REACHED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewRecursive">
+            <summary>
+            ER_VIEW_RECURSIVE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonGroupingFieldUsed">
+            <summary>
+            ER_NON_GROUPING_FIELD_USED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableCannotHandleSpatialKeys">
+            <summary>
+            ER_TABLE_CANT_HANDLE_SPKEYS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoTriggersOnSystemSchema">
+            <summary>
+            ER_NO_TRIGGERS_ON_SYSTEM_SCHEMA
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RemovedSpaces">
+            <summary>
+            ER_REMOVED_SPACES
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AutoIncrementReadFailed">
+            <summary>
+            ER_AUTOINC_READ_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UserNameError">
+            <summary>
+            ER_USERNAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.HostNameError">
+            <summary>
+            ER_HOSTNAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongStringLength">
+            <summary>
+            ER_WRONG_STRING_LENGTH
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NonInsertableTable">
+            <summary>
+            ER_NON_INSERTABLE_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AdminWrongMergeTable">
+            <summary>
+            ER_ADMIN_WRONG_MRG_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooHighLevelOfNestingForSelect">
+            <summary>
+            ER_TOO_HIGH_LEVEL_OF_NESTING_FOR_SELECT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NameBecomesEmpty">
+            <summary>
+            ER_NAME_BECOMES_EMPTY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AmbiguousFieldTerm">
+            <summary>
+            ER_AMBIGUOUS_FIELD_TERM
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForeignServerExists">
+            <summary>
+            ER_FOREIGN_SERVER_EXISTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForeignServerDoesNotExist">
+            <summary>
+            ER_FOREIGN_SERVER_DOESNT_EXIST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.IllegalHACreateOption">
+            <summary>
+            ER_ILLEGAL_HA_CREATE_OPTION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionRequiresValues">
+            <summary>
+            ER_PARTITION_REQUIRES_VALUES_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionWrongValues">
+            <summary>
+            ER_PARTITION_WRONG_VALUES_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionMaxValue">
+            <summary>
+            ER_PARTITION_MAXVALUE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionSubPartition">
+            <summary>
+            ER_PARTITION_SUBPARTITION_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionSubPartMix">
+            <summary>
+            ER_PARTITION_SUBPART_MIX_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionWrongNoPart">
+            <summary>
+            ER_PARTITION_WRONG_NO_PART_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionWrongNoSubPart">
+            <summary>
+            ER_PARTITION_WRONG_NO_SUBPART_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongExpressionInParitionFunction">
+            <summary>
+            ER_WRONG_EXPR_IN_PARTITION_FUNC_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoConstantExpressionInRangeOrListError">
+            <summary>
+            ER_NO_CONST_EXPR_IN_RANGE_OR_LIST_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FieldNotFoundPartitionErrror">
+            <summary>
+            ER_FIELD_NOT_FOUND_PART_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ListOfFieldsOnlyInHash">
+            <summary>
+            ER_LIST_OF_FIELDS_ONLY_IN_HASH_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.InconsistentPartitionInfo">
+            <summary>
+            ER_INCONSISTENT_PARTITION_INFO_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionFunctionNotAllowed">
+            <summary>
+            ER_PARTITION_FUNC_NOT_ALLOWED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionsMustBeDefined">
+            <summary>
+            ER_PARTITIONS_MUST_BE_DEFINED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RangeNotIncreasing">
+            <summary>
+            ER_RANGE_NOT_INCREASING_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.InconsistentTypeOfFunctions">
+            <summary>
+            ER_INCONSISTENT_TYPE_OF_FUNCTIONS_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MultipleDefinitionsConstantInListPartition">
+            <summary>
+            ER_MULTIPLE_DEF_CONST_IN_LIST_PART_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionEntryError">
+            <summary>
+            ER_PARTITION_ENTRY_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.MixHandlerError">
+            <summary>
+            ER_MIX_HANDLER_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionNotDefined">
+            <summary>
+            ER_PARTITION_NOT_DEFINED_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyPartitions">
+            <summary>
+            ER_TOO_MANY_PARTITIONS_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SubPartitionError">
+            <summary>
+            ER_SUBPARTITION_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotCreateHandlerFile">
+            <summary>
+            ER_CANT_CREATE_HANDLER_FILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BlobFieldInPartitionFunction">
+            <summary>
+            ER_BLOB_FIELD_IN_PART_FUNC_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UniqueKeyNeedAllFieldsInPartitioningFunction">
+            <summary>
+            ER_UNIQUE_KEY_NEED_ALL_FIELDS_IN_PF
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoPartitions">
+            <summary>
+            ER_NO_PARTS_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionManagementOnNoPartitioned">
+            <summary>
+            ER_PARTITION_MGMT_ON_NONPARTITIONED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForeignKeyOnPartitioned">
+            <summary>
+            ER_FOREIGN_KEY_ON_PARTITIONED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DropPartitionNonExistent">
+            <summary>
+            ER_DROP_PARTITION_NON_EXISTENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DropLastPartition">
+            <summary>
+            ER_DROP_LAST_PARTITION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CoalesceOnlyOnHashPartition">
+            <summary>
+            ER_COALESCE_ONLY_ON_HASH_PARTITION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ReorganizeHashOnlyOnSameNumber">
+            <summary>
+            ER_REORG_HASH_ONLY_ON_SAME_NO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ReorganizeNoParameter">
+            <summary>
+            ER_REORG_NO_PARAM_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OnlyOnRangeListPartition">
+            <summary>
+            ER_ONLY_ON_RANGE_LIST_PARTITION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AddPartitionSubPartition">
+            <summary>
+            ER_ADD_PARTITION_SUBPART_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AddPartitionNoNewPartition">
+            <summary>
+            ER_ADD_PARTITION_NO_NEW_PARTITION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CoalescePartitionNoPartition">
+            <summary>
+            ER_COALESCE_PARTITION_NO_PARTITION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ReorganizePartitionNotExist">
+            <summary>
+            ER_REORG_PARTITION_NOT_EXIST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SameNamePartition">
+            <summary>
+            ER_SAME_NAME_PARTITION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoBinLog">
+            <summary>
+            ER_NO_BINLOG_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ConsecutiveReorganizePartitions">
+            <summary>
+            ER_CONSECUTIVE_REORG_PARTITIONS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ReorganizeOutsideRange">
+            <summary>
+            ER_REORG_OUTSIDE_RANGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionFunctionFailure">
+            <summary>
+            ER_PARTITION_FUNCTION_FAILURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionStateError">
+            <summary>
+            ER_PART_STATE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LimitedPartitionRange">
+            <summary>
+            ER_LIMITED_PART_RANGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PluginIsNotLoaded">
+            <summary>
+            ER_PLUGIN_IS_NOT_LOADED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongValue">
+            <summary>
+            ER_WRONG_VALUE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoPartitionForGivenValue">
+            <summary>
+            ER_NO_PARTITION_FOR_GIVEN_VALUE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FileGroupOptionOnlyOnce">
+            <summary>
+            ER_FILEGROUP_OPTION_ONLY_ONCE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CreateFileGroupFailed">
+            <summary>
+            ER_CREATE_FILEGROUP_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DropFileGroupFailed">
+            <summary>
+            ER_DROP_FILEGROUP_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableSpaceAutoExtend">
+            <summary>
+            ER_TABLESPACE_AUTO_EXTEND_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongSizeNumber">
+            <summary>
+            ER_WRONG_SIZE_NUMBER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SizeOverflow">
+            <summary>
+            ER_SIZE_OVERFLOW_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.AlterFileGroupFailed">
+            <summary>
+            ER_ALTER_FILEGROUP_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogRowLogginFailed">
+            <summary>
+            ER_BINLOG_ROW_LOGGING_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogRowWrongTableDefinition">
+            <summary>
+            ER_BINLOG_ROW_WRONG_TABLE_DEF
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogRowRBRToSBR">
+            <summary>
+            ER_BINLOG_ROW_RBR_TO_SBR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventAlreadyExists">
+            <summary>
+            ER_EVENT_ALREADY_EXISTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventStoreFailed">
+            <summary>
+            ER_EVENT_STORE_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventDoesNotExist">
+            <summary>
+            ER_EVENT_DOES_NOT_EXIST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventCannotAlter">
+            <summary>
+            ER_EVENT_CANT_ALTER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventDropFailed">
+            <summary>
+            ER_EVENT_DROP_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventIntervalNotPositiveOrTooBig">
+            <summary>
+            ER_EVENT_INTERVAL_NOT_POSITIVE_OR_TOO_BIG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventEndsBeforeStarts">
+            <summary>
+            ER_EVENT_ENDS_BEFORE_STARTS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventExecTimeInThePast">
+            <summary>
+            ER_EVENT_EXEC_TIME_IN_THE_PAST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventOpenTableFailed">
+            <summary>
+            ER_EVENT_OPEN_TABLE_FAILED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventNeitherMExpresssionNorMAt">
+            <summary>
+            ER_EVENT_NEITHER_M_EXPR_NOR_M_AT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ColumnCountDoesNotMatchCorrupted">
+            <summary>
+            ER_OBSOLETE_COL_COUNT_DOESNT_MATCH_CORRUPTED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotLoadFromTable">
+            <summary>
+            ER_OBSOLETE_CANNOT_LOAD_FROM_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventCannotDelete">
+            <summary>
+            ER_EVENT_CANNOT_DELETE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventCompileError">
+            <summary>
+            ER_EVENT_COMPILE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventSameName">
+            <summary>
+            ER_EVENT_SAME_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventDataTooLong">
+            <summary>
+            ER_EVENT_DATA_TOO_LONG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DropIndexForeignKey">
+            <summary>
+            ER_DROP_INDEX_FK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningDeprecatedSyntaxWithVersion">
+            <summary>
+            ER_WARN_DEPRECATED_SYNTAX_WITH_VER
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotWriteLockLogTable">
+            <summary>
+            ER_CANT_WRITE_LOCK_LOG_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotLockLogTable">
+            <summary>
+            ER_CANT_LOCK_LOG_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ForeignDuplicateKey">
+            <summary>
+            ER_FOREIGN_DUPLICATE_KEY_OLD_UNUSED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ColumnCountDoesNotMatchPleaseUpdate">
+            <summary>
+            ER_COL_COUNT_DOESNT_MATCH_PLEASE_UPDATE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TemoraryTablePreventSwitchOutOfRBR">
+            <summary>
+            ER_TEMP_TABLE_PREVENTS_SWITCH_OUT_OF_RBR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredFunctionPreventsSwitchBinLogFormat">
+            <summary>
+            ER_STORED_FUNCTION_PREVENTS_SWITCH_BINLOG_FORMAT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NDBCannotSwitchBinLogFormat">
+            <summary>
+            ER_NDB_CANT_SWITCH_BINLOG_FORMAT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionNoTemporary">
+            <summary>
+            ER_PARTITION_NO_TEMPORARY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionConstantDomain">
+            <summary>
+            ER_PARTITION_CONST_DOMAIN_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionFunctionIsNotAllowed">
+            <summary>
+            ER_PARTITION_FUNCTION_IS_NOT_ALLOWED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DDLLogError">
+            <summary>
+            ER_DDL_LOG_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NullInValuesLessThan">
+            <summary>
+            ER_NULL_IN_VALUES_LESS_THAN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongPartitionName">
+            <summary>
+            ER_WRONG_PARTITION_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotChangeTransactionIsolation">
+            <summary>
+            ER_CANT_CHANGE_TX_CHARACTERISTICS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicateEntryAutoIncrementCase">
+            <summary>
+            ER_DUP_ENTRY_AUTOINCREMENT_CASE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventModifyQueueError">
+            <summary>
+            ER_EVENT_MODIFY_QUEUE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventSetVariableError">
+            <summary>
+            ER_EVENT_SET_VAR_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionMergeError">
+            <summary>
+            ER_PARTITION_MERGE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotActivateLog">
+            <summary>
+            ER_CANT_ACTIVATE_LOG
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RBRNotAvailable">
+            <summary>
+            ER_RBR_NOT_AVAILABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.Base64DecodeError">
+            <summary>
+            ER_BASE64_DECODE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventRecursionForbidden">
+            <summary>
+            ER_EVENT_RECURSION_FORBIDDEN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventsDatabaseError">
+            <summary>
+            ER_EVENTS_DB_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.OnlyIntegersAllowed">
+            <summary>
+            ER_ONLY_INTEGERS_ALLOWED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.UnsupportedLogEngine">
+            <summary>
+            ER_UNSUPORTED_LOG_ENGINE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BadLogStatement">
+            <summary>
+            ER_BAD_LOG_STATEMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannotRenameLogTable">
+            <summary>
+            ER_CANT_RENAME_LOG_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongParameterCountToNativeFCT">
+            <summary>
+            ER_WRONG_PARAMCOUNT_TO_NATIVE_FCT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongParametersToNativeFCT">
+            <summary>
+            ER_WRONG_PARAMETERS_TO_NATIVE_FCT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WrongParametersToStoredFCT">
+            <summary>
+            ER_WRONG_PARAMETERS_TO_STORED_FCT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NativeFCTNameCollision">
+            <summary>
+            ER_NATIVE_FCT_NAME_COLLISION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DuplicateEntryWithKeyName">
+            <summary>
+            ER_DUP_ENTRY_WITH_KEY_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogPurgeEMFile">
+            <summary>
+            ER_BINLOG_PURGE_EMFILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventCannotCreateInThePast">
+            <summary>
+            ER_EVENT_CANNOT_CREATE_IN_THE_PAST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventCannotAlterInThePast">
+            <summary>
+            ER_EVENT_CANNOT_ALTER_IN_THE_PAST
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveIncident">
+            <summary>
+            ER_SLAVE_INCIDENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoPartitionForGivenValueSilent">
+            <summary>
+            ER_NO_PARTITION_FOR_GIVEN_VALUE_SILENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogUnsafeStatement">
+            <summary>
+            ER_BINLOG_UNSAFE_STATEMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveFatalError">
+            <summary>
+            ER_SLAVE_FATAL_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveRelayLogReadFailure">
+            <summary>
+            ER_SLAVE_RELAY_LOG_READ_FAILURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveRelayLogWriteFailure">
+            <summary>
+            ER_SLAVE_RELAY_LOG_WRITE_FAILURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveCreateEventFailure">
+            <summary>
+            ER_SLAVE_CREATE_EVENT_FAILURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveMasterComFailure">
+            <summary>
+            ER_SLAVE_MASTER_COM_FAILURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.BinLogLoggingImpossible">
+            <summary>
+            ER_BINLOG_LOGGING_IMPOSSIBLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewNoCreationContext">
+            <summary>
+            ER_VIEW_NO_CREATION_CTX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ViewInvalidCreationContext">
+            <summary>
+            ER_VIEW_INVALID_CREATION_CTX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.StoredRoutineInvalidCreateionContext">
+            <summary>
+            ER_SR_INVALID_CREATION_CTX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TiggerCorruptedFile">
+            <summary>
+            ER_TRG_CORRUPTED_FILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerNoCreationContext">
+            <summary>
+            ER_TRG_NO_CREATION_CTX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerInvalidCreationContext">
+            <summary>
+            ER_TRG_INVALID_CREATION_CTX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.EventInvalidCreationContext">
+            <summary>
+            ER_EVENT_INVALID_CREATION_CTX
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TriggerCannotOpenTable">
+            <summary>
+            ER_TRG_CANT_OPEN_TABLE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.CannoCreateSubRoutine">
+            <summary>
+            ER_CANT_CREATE_SROUTINE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveAmbiguousExecMode">
+            <summary>
+            ER_NEVER_USED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NoFormatDescriptionEventBeforeBinLogStatement">
+            <summary>
+            ER_NO_FORMAT_DESCRIPTION_EVENT_BEFORE_BINLOG_STATEMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveCorruptEvent">
+            <summary>
+            ER_SLAVE_CORRUPT_EVENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LoadDataInvalidColumn">
+            <summary>
+            ER_LOAD_DATA_INVALID_COLUMN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.LogPurgeNoFile">
+            <summary>
+            ER_LOG_PURGE_NO_FILE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XARBTimeout">
+            <summary>
+            ER_XA_RBTIMEOUT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.XARBDeadlock">
+            <summary>
+            ER_XA_RBDEADLOCK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NeedRePrepare">
+            <summary>
+            ER_NEED_REPREPARE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DelayedNotSupported">
+            <summary>
+            ER_DELAYED_NOT_SUPPORTED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningNoMasterInfo">
+            <summary>
+            WARN_NO_MASTER_INFO
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningOptionIgnored">
+            <summary>
+            WARN_OPTION_IGNORED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningPluginDeleteBuiltIn">
+            <summary>
+            WARN_PLUGIN_DELETE_BUILTIN
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningPluginBusy">
+            <summary>
+            WARN_PLUGIN_BUSY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.VariableIsReadonly">
+            <summary>
+            ER_VARIABLE_IS_READONLY
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningEngineTransactionRollback">
+            <summary>
+            ER_WARN_ENGINE_TRANSACTION_ROLLBACK
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveHeartbeatFailure">
+            <summary>
+            ER_SLAVE_HEARTBEAT_FAILURE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SlaveHeartbeatValueOutOfRange">
+            <summary>
+            ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.NDBReplicationSchemaError">
+            <summary>
+            ER_NDB_REPLICATION_SCHEMA_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ConflictFunctionParseError">
+            <summary>
+            ER_CONFLICT_FN_PARSE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.ExcepionsWriteError">
+            <summary>
+            ER_EXCEPTIONS_WRITE_ERROR
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooLongTableComment">
+            <summary>
+            ER_TOO_LONG_TABLE_COMMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooLongFieldComment">
+            <summary>
+            ER_TOO_LONG_FIELD_COMMENT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.FunctionInExistentNameCollision">
+            <summary>
+            ER_FUNC_INEXISTENT_NAME_COLLISION
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DatabaseNameError">
+            <summary>
+            ER_DATABASE_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TableNameErrror">
+            <summary>
+            ER_TABLE_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.PartitionNameError">
+            <summary>
+            ER_PARTITION_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.SubPartitionNameError">
+            <summary>
+            ER_SUBPARTITION_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TemporaryNameError">
+            <summary>
+            ER_TEMPORARY_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.RenamedNameError">
+            <summary>
+            ER_RENAMED_NAME
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.TooManyConcurrentTransactions">
+            <summary>
+            ER_TOO_MANY_CONCURRENT_TRXS
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.WarningNonASCIISeparatorNotImplemented">
+            <summary>
+            WARN_NON_ASCII_SEPARATOR_NOT_IMPLEMENTED
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DebugSyncTimeout">
+            <summary>
+            ER_DEBUG_SYNC_TIMEOUT
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlErrorCode.DebugSyncHitLimit">
+            <summary>
+            ER_DEBUG_SYNC_HIT_LIMIT
+            </summary>
+        </member>
+        <member name="T:MySql.Data.MySqlClient.MySqlGuidFormat">
+            <summary>
+            Determines which column type (if any) should be read as a <c>System.Guid</c>.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlGuidFormat.Default">
+            <summary>
+            Same as <c>Char36</c> if <c>OldGuids=False</c>; same as <c>LittleEndianBinary16</c> if <c>OldGuids=True</c>.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlGuidFormat.None">
+            <summary>
+            No column types are read/written as a <code>Guid</code>.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlGuidFormat.Char36">
+            <summary>
+            All <c>CHAR(36)</c> columns are read/written as a <c>Guid</c> using lowercase hex with hyphens,
+            which matches <a href="https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_uuid"><c>UUID()</c></a>.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlGuidFormat.Char32">
+            <summary>
+            All <c>CHAR(32)</c> columns are read/written as a <c>Guid</c> using lowercase hex without hyphens.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlGuidFormat.Binary16">
+            <summary>
+            All <c>BINARY(16)</c> columns are read/written as a <c>Guid</c> using big-endian byte order,
+            which matches <a href="https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_uuid-to-bin"><c>UUID_TO_BIN(x)</c></a>.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlGuidFormat.TimeSwapBinary16">
+            <summary>
+            All <c>BINARY(16)</c> columns are read/written as a <c>Guid</c> using big-endian byte order with time parts swapped,
+            which matches <a href="https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_uuid-to-bin"><c>UUID_TO_BIN(x,1)</c></a>.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlGuidFormat.LittleEndianBinary16">
+            <summary>
+            All <c>BINARY(16)</c> columns are read/written as a <c>Guid</c> using little-endian byte order, i.e. the byte order
+            used by <see cref="M:System.Guid.ToByteArray"/> and <see cref="M:System.Guid.#ctor(System.Byte[])"/>.
+            </summary>
+        </member>
+        <member name="M:MySql.Data.MySqlClient.MySqlHelper.EscapeString(System.String)">
+            <summary>
+            Escapes single and double quotes, and backslashes in <paramref name="value"/>.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlLoadBalance.RoundRobin">
+            <summary>
+            Each new connection opened for a connection pool uses the next host name (sequentially with wraparound).
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlLoadBalance.FailOver">
+            <summary>
+            Each new connection tries to connect to the first host; subsequent hosts are used only if connecting to the first one fails.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlLoadBalance.Random">
+            <summary>
+            Servers are tried in random order.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlLoadBalance.LeastConnections">
+            <summary>
+            Servers are tried in ascending order of number of currently-open connections.
+            </summary>
+        </member>
+        <member name="P:MySql.Data.MySqlClient.MySqlRowsCopiedEventArgs.Abort">
+            <summary>
+            Gets or sets a value that indicates whether the bulk copy operation should be aborted.
+            </summary>
+        </member>
+        <member name="P:MySql.Data.MySqlClient.MySqlRowsCopiedEventArgs.RowsCopied">
+            <summary>
+            Gets a value that returns the number of rows copied during the current bulk copy operation.
+            </summary>
+        </member>
+        <member name="T:MySql.Data.MySqlClient.MySqlRowsCopiedEventHandler">
+            <summary>
+            Represents the method that handles the <see cref="E:MySql.Data.MySqlClient.MySqlBulkCopy.RowsCopied"/> event of a <see cref="T:MySql.Data.MySqlClient.MySqlBulkCopy"/>.
+            </summary>
+        </member>
+        <member name="T:MySql.Data.MySqlClient.MySqlSslMode">
+            <summary>
+            SSL connection options.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlSslMode.None">
+            <summary>
+            Do not use SSL.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlSslMode.Preferred">
+            <summary>
+            Use SSL if the server supports it.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlSslMode.Required">
+            <summary>
+            Always use SSL. Deny connection if server does not support SSL.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlSslMode.VerifyCA">
+            <summary>
+             Always use SSL. Validate the Certificate Authority but tolerate name mismatch.
+            </summary>
+        </member>
+        <member name="F:MySql.Data.MySqlClient.MySqlSslMode.VerifyFull">
+            <summary>
+            Always use SSL. Fail if the host name is not correct.
+            </summary>
+        </member>
+        <member name="T:MySql.Data.Types.MySqlGeometry">
+            <summary>
+            Represents MySQL's internal GEOMETRY format: https://dev.mysql.com/doc/refman/8.0/en/gis-data-formats.html#gis-internal-format
+            </summary>
+        </member>
+        <member name="M:MySql.Data.Types.MySqlGeometry.FromWkb(System.Int32,System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Constructs a <see cref="T:MySql.Data.Types.MySqlGeometry"/> from a SRID and Well-known Binary bytes.
+            </summary>
+            <param name="srid">The SRID (Spatial Reference System ID).</param>
+            <param name="wkb">The Well-known Binary serialization of the geometry.</param>
+            <returns>A new <see cref="T:MySql.Data.Types.MySqlGeometry"/> containing the specified geometry.</returns>
+        </member>
+        <member name="M:MySql.Data.Types.MySqlGeometry.FromMySql(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Constructs a <see cref="T:MySql.Data.Types.MySqlGeometry"/> from MySQL's internal format.
+            </summary>
+            <param name="value">The raw bytes of MySQL's internal GEOMETRY format.</param>
+            <returns>A new <see cref="T:MySql.Data.Types.MySqlGeometry"/> containing the specified geometry.</returns>
+            <remarks>See <a href="https://dev.mysql.com/doc/refman/8.0/en/gis-data-formats.html#gis-internal-format">Internal Geometry Storage Format</a>.</remarks>
+        </member>
+        <member name="P:MySql.Data.Types.MySqlGeometry.SRID">
+            <summary>
+            The Spatial Reference System ID of this geometry.
+            </summary>
+        </member>
+        <member name="P:MySql.Data.Types.MySqlGeometry.WKB">
+            <summary>
+            The Well-known Binary serialization of this geometry.
+            </summary>
+        </member>
+        <member name="P:MySql.Data.Types.MySqlGeometry.Value">
+            <summary>
+            The internal MySQL form of this geometry.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+            <summary>Specifies that null is allowed as an input even if the corresponding type disallows it.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullAttribute">
+            <summary>Specifies that an output will not be null even if the corresponding type allows it.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute">
+            <summary>Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue"/>, the parameter will not be null even if the corresponding type allows it.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>Initializes the attribute with the specified return value condition.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated parameter will not be null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue">
+            <summary>Gets the return value condition.</summary>
+        </member>
+    </members>
+</doc>

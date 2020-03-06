@@ -1,89 +1,87 @@
 ﻿using System.Data;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DapperRepository.Core.Data
 {
     public interface IRepository<T> where T : BaseEntity
     {
         /// <summary>
-        /// 根据主键获取一条数据
+        /// Returns a single entity by a single id from table "Ts" asynchronously using Task. T must be of interface type.
+        /// Id must be marked with [Key] attribute.
+        /// Created entity is tracked/intercepted for changes and used by the Update() extension.
         /// </summary>
-        /// <param name="sql">sql语句或者存储过程</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="buffered">是否缓冲查询数据，详细信息：https://dapper-tutorial.net/buffered </param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="commandType">命令类型（sql语句或是存储过程）</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>当前查询数据</returns>
-        T GetById(string sql, object param = null, bool buffered = true, int? commandTimeout = null,
-            CommandType? commandType = null, bool useTransaction = false);
+        /// <typeparam name="T">Interface type to create and populate</typeparam>
+        /// <param name="id">Id of the entity to get, must be marked with [Key] attribute</param>
+        /// <param name="useTransaction">Use transaction or not</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout</param>
+        /// <returns>Entity of T</returns>
+        Task<T> GetAsync(int id, bool useTransaction = false, int? commandTimeout = null);
 
         /// <summary>
-        /// 根据相关条件获取一条数据
+        /// Returns a single entity by a single id from table "Ts" asynchronously using Task. T must be of interface type.
+        /// Id must be marked with [Key] attribute.
+        /// Created entity is tracked/intercepted for changes and used by the Update() extension.
         /// </summary>
-        /// <param name="sql">sql语句或者存储过程</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="buffered">是否缓冲查询数据，详细信息：https://dapper-tutorial.net/buffered </param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="commandType">命令类型（sql语句或是存储过程）</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>当前查询数据</returns>
-        T GetBy(string sql, object param = null, bool buffered = true, int? commandTimeout = null,
-            CommandType? commandType = null, bool useTransaction = false);
+        /// <typeparam name="T">Interface type to create and populate</typeparam>
+        /// <param name="sql">query sql</param>
+        /// <param name="param">parameters</param>
+        /// <param name="useTransaction">Use transaction or not</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout</param>
+        /// <returns>Entity of T</returns>
+        Task<T> GetFirstOrDefaultAsync(string sql, object param = null, bool useTransaction = false,
+            int? commandTimeout = null);
 
         /// <summary>
-        /// 获取数据列表（所有、部分或者分页获取）
+        /// get data list on relevant conditions
         /// </summary>
-        /// <param name="sql">sql语句或者存储过程</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="buffered">是否缓冲查询数据，详细信息：https://dapper-tutorial.net/buffered </param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="commandType">命令类型（sql语句或是存储过程）</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>当前查询数据列表</returns>
-        IEnumerable<T> GetList(string sql, object param = null, bool buffered = true, int? commandTimeout = null,
-            CommandType? commandType = null, bool useTransaction = false);
+        /// <param name="sql">sql query or stored procedure</param>
+        /// <param name="param">parameters</param>
+        /// <param name="useTransaction">Use transaction or not</param>
+        /// <param name="commandTimeout">command time out</param>
+        /// <param name="commandType">command type (sql or stored procedure)</param>
+        /// <returns>data list</returns>
+        Task<IEnumerable<T>> GetListAsync(string sql, object param = null, bool useTransaction = false,
+            int? commandTimeout = null, CommandType? commandType = null);
 
         /// <summary>
-        /// 添加数据
+        /// Inserts an entity into table "Ts" and returns identity id or number of inserted rows if inserting a list.
         /// </summary>
-        /// <param name="entity">要添加的实体对象</param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>执行结果（一般为添加的Id）</returns>
-        dynamic Insert(T entity, int? commandTimeout = null, bool useTransaction = false);
+        /// <typeparam name="T">The type to insert.</typeparam>
+        /// <param name="entity">Entity to insert, can be list of entities</param>
+        /// <param name="useTransaction">Use transaction or not</param>
+        /// <param name="commandTimeout">command time out</param>
+        /// <returns>Identity of inserted entity, or number of inserted rows if inserting a list</returns>
+        Task<int> InsertAsync(T entity, bool useTransaction = false, int? commandTimeout = null);
 
         /// <summary>
-        /// 修改数据
+        /// Updates entity in table "Ts" asynchronously using Task, checks if the entity is modified if the entity is tracked by the Get() extension.
         /// </summary>
-        /// <param name="entity">要修改的实体对象</param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>执行结果（true or false）</returns>
-        bool Update(T entity, int? commandTimeout = null, bool useTransaction = false);
+        /// <typeparam name="T">Type to be updated</typeparam>
+        /// <param name="entity">Entity to be updated</param>
+        /// <param name="useTransaction">Use transaction or not</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout</param>
+        /// <returns>true if updated, false if not found or not modified (tracked entities)</returns>
+        Task<bool> UpdateAsync(T entity, bool useTransaction = false, int? commandTimeout = null);
 
         /// <summary>
-        /// 删除数据（默认以主键删除）
+        /// Delete entity in table "Ts" asynchronously using Task.
         /// </summary>
-        /// <param name="entityId">要删除的实体对象Id</param>
-        /// <param name="predicate">where的条件（为空则用主键删除，不为空则以条件为准）</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>执行结果（true or false）</returns>
-        bool Delete(int entityId, string predicate = "", object param = null, int? commandTimeout = null,
-            bool useTransaction = false);
+        /// <typeparam name="T">Type of entity</typeparam>
+        /// <param name="entity">Entity to delete</param>
+        /// <param name="useTransaction">Use transaction or not</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout</param>
+        /// <returns>true if deleted, false if not found</returns>
+        Task<bool> DeleteAsync(T entity, bool useTransaction = false, int? commandTimeout = null);
 
-        /// <summary>
-        /// 执行对象sql语句（一般需要事务处理）
-        /// </summary>
-        /// <param name="sql">sql语句或者存储过程</param>
-        /// <param name="param">语句参数</param>
-        /// <param name="commandTimeout">执行超时时间</param>
-        /// <param name="commandType">命令类型（sql语句或是存储过程）</param>
-        /// <param name="useTransaction">是否开启事务</param>
-        /// <returns>执行受影响的行数</returns>
-        int Execute(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null,
-            bool useTransaction = true);
+        /// <summary>Execute a command asynchronously using Task.</summary>
+        /// <param name="sql">The SQL to execute for this query.</param>
+        /// <param name="param">The parameters to use for this query.</param>
+        /// <param name="useTransaction">Use transaction or not</param>
+        /// <param name="commandTimeout">Number of seconds before command execution timeout.</param>
+        /// <param name="commandType">Is it a stored proc or a batch?</param>
+        /// <returns>The number of rows affected.</returns>
+        Task<int> ExecuteAsync(string sql, object param = null, bool useTransaction = false,
+            int? commandTimeout = null, CommandType? commandType = null);
     }
 }

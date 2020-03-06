@@ -40,14 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseInterfaces\IMssqlService.cs" />
-    <Compile Include="BaseInterfaces\IMysqlService.cs" />
-    <Compile Include="BaseInterfaces\IOracleService.cs" />
-    <Compile Include="Mssql\Customers\CustomerRoleService.cs" />
     <Compile Include="Mssql\Customers\CustomerService.cs" />
-    <Compile Include="BaseInterfaces\ICustomerRoleService.cs" />
     <Compile Include="BaseInterfaces\ICustomerService.cs" />
-    <Compile Include="Mysql\Customers\CustomerRoleService.cs" />
     <Compile Include="Mysql\Customers\CustomerService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -44,6 +44,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Web" />
@@ -67,8 +68,6 @@
     <Compile Include="Data\IDbSession.cs" />
     <Compile Include="Data\IRepository.cs" />
     <Compile Include="Domain\Customers\Customer.cs" />
-    <Compile Include="Domain\Customers\CustomerDefaults.cs" />
-    <Compile Include="Domain\Customers\CustomerDtoModel.cs" />
     <Compile Include="Domain\Customers\CustomerRole.cs" />
     <Compile Include="Domain\DatabaseType.cs" />
     <Compile Include="Domain\Security\HashSignType.cs" />

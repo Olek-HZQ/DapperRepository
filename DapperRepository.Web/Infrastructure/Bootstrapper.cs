@@ -29,15 +29,18 @@ namespace DapperRepository.Web.Infrastructure
 
             builder.RegisterControllers(assembly);
 
-            RegisterMore(builder, x =>
+            if (config != null && config.RedisEnabled)
             {
-                x.RegisterType<RedisConnectionWrapper>().As<IRedisConnectionWrapper>().SingleInstance();
-                x.RegisterType<RedisCacheManager>().As<ICacheManager>().InstancePerLifetimeScope();
-            });
+                RegisterMore(builder, x =>
+                {
+                    x.RegisterType<RedisConnectionWrapper>().As<IRedisConnectionWrapper>().SingleInstance();
+                    x.RegisterType<RedisCacheManager>().As<ICacheManager>().InstancePerLifetimeScope();
+                });
+            }
 
             if (config != null)
             {
-                switch (config.ActivedDbTypeName)
+                switch (config.CurrentDbTypeName)
                 {
                     case ConnKeyConstants.Mssql:
 
@@ -79,7 +82,7 @@ namespace DapperRepository.Web.Infrastructure
 
         private static void RegisterRepository(ContainerBuilder builder, string registerDbTypeName)
         {
-            string namespacePrefix = string.Format("DapperRepository.Data.Repositories.{0}", registerDbTypeName);
+            string namespacePrefix = $"DapperRepository.Data.Repositories.{registerDbTypeName}";
 
             builder.RegisterAssemblyTypes(Assembly.Load("DapperRepository.Data"))
                             .Where(x => x.Namespace != null && x.Namespace.StartsWith(namespacePrefix)
@@ -90,7 +93,7 @@ namespace DapperRepository.Web.Infrastructure
 
         private static void RegisterService(ContainerBuilder builder, string registerDbTypeName)
         {
-            string namespacePrefix = string.Format("DapperRepository.Services.{0}", registerDbTypeName);
+            string namespacePrefix = $"DapperRepository.Services.{registerDbTypeName}";
 
             builder.RegisterAssemblyTypes(Assembly.Load("DapperRepository.Services"))
                             .Where(x => x.Namespace != null && x.Namespace.StartsWith(namespacePrefix)

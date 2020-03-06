@@ -1,36 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using DapperRepository.Core.Data;
 using DapperRepository.Core.Domain.Customers;
 
 namespace DapperRepository.Data.Repositories.BaseInterfaces
 {
-    public interface ICustomerRepository: IRepository<Customer>
+    public interface ICustomerRepository : IRepository<Customer>
     {
-        Customer GetCustomerById(int id);
+        Task<Customer> GetCustomerByIdAsync(int id);
 
-        CustomerDtoModel GetCustomerBy(int id);
+        Task<Customer> GetCustomerByAsync(string name, string email);
 
-        /// <summary>
-        /// 获取用户表记录行数
-        /// </summary>
-        /// <returns></returns>
-        int GetCustomerCount(string username = "", string email = "");
+        Task<IEnumerable<Customer>> GetAllCustomersAsync();
 
-        /// <summary>
-        /// 批量插入数据(默认为guest角色)
-        /// </summary>
-        /// <param name="time">执行时间</param>
-        /// <param name="customers">需插入数据列表</param>
-        /// <param name="roleId">对应角色</param>
-        /// <returns>插入数据数量</returns>
-        int InsertList(out long time, List<Customer> customers, int roleId);
+        Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize);
 
-        IEnumerable<CustomerDtoModel> GetAllCustomers();
+        Task<int> InsertCustomerAsync(Customer customer);
 
-        IEnumerable<CustomerDtoModelForPage> GetPagedCustomers(int totalCount, string username = "", string email = "", int pageIndex = 0, int pageSize = int.MaxValue, bool useStoredProcedure = false);
+        Task<int> InsertCustomerListAsync(List<Customer> customers);
 
-        int InsertCustomer(Customer customer, int roleId);
+        Task<bool> UpdateCustomerAsync(Customer customer);
 
-        int UpdateCustomer(Customer customer, int roleId);
+        Task<bool> DeleteCustomerAsync(Customer customer);
     }
 }

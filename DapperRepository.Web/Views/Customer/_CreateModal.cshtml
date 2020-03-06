@@ -1,0 +1,34 @@
+﻿@{
+    Layout = "";
+}
+
+<div class="modal fade" id="CustomerCreateModal" tabindex="-1" role="dialog" aria-labelledby="CustomerCreateModalLabel" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            @Html.Partial("Modals/_ModalHeader", "Add Customer")
+            <form id="add-customer-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="col-md-3">Username</label>
+                        <div class="col-md-9">
+                            <input id="Username" name="Username" class="form-control" type="text" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-3">Email</label>
+                        <div class="col-md-9">
+                            <input id="Email" name="Email" class="form-control" type="email" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-3">Active</label>
+                        <div class="col-md-9">
+                            <input id="Active" name="Active" type="checkbox">
+                        </div>
+                    </div>
+                </div>
+                @Html.Partial("Modals/_ModalFooter")
+            </form>
+        </div>
+    </div>
+</div>
