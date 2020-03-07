@@ -23,10 +23,12 @@ layui.use(["layer", "table", "form"], function () {
 });
 
 $(function () {
-    $("#btn-create").click(function () {
+    $("#btn-create").click(function (e) {
+        e.preventDefault();
+
         var res = validate();
         if (!res) {
-            return false;
+            return;
         }
 
         var postData = {
@@ -69,10 +71,12 @@ $(function () {
         });
     });
 
-    $("#btn-edit").click(function () {
+    $("#btn-edit").click(function (e) {
+        e.preventDefault();
+
         var res = validate();
         if (!res) {
-            return false;
+            return;
         }
 
         var postData = {

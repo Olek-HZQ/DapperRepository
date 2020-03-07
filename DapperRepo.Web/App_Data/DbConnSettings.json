@@ -1,4 +1,5 @@
 {
-  "MssqlMasterKey": "Data Source=.;Initial Catalog=DapperRepositoryDb;Integrated Security=False;Persist Security Info=False;User ID=sa;Password=your password",
-  "MysqlMasterKey": "server=192.168.247.129;database=DapperRepositoryDb;uid=root;password=your password;Allow User Variables=True;"
+  "MssqlMasterKey": "Data Source=.;Initial Catalog=DapperRepositoryDb;Integrated Security=True;",
+  "MysqlMasterKey": "your mysql connection string",
+  "LocalMysqlMasterKey": "you local mysql connection string"
 }

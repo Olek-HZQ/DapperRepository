@@ -175,7 +175,9 @@ namespace DapperRepo.Web.Controllers
 
             try
             {
-                bool result = await _customerService.DeleteCustomerAsync(customer);
+                customer.Deleted = true;
+                bool result = await _customerService.UpdateCustomerAsync(customer);
+
                 return Json(new { status = result, msg = result ? "Deleted successfully" : "Deleted failed" });
             }
             catch (Exception ex)
