@@ -112,7 +112,7 @@
                 $("#CustomerEditModal div.modal-content").html(content);
             },
             error: function (xhr) {
-                console.log(xhr.responseText);
+                $.alert(xhr.responseText);
             }
         });
     });

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,8 +22,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
 
         public virtual async Task<Customer> GetCustomerByAsync(string name, string email)
         {
-            var query = new Query(TableName).Select("Username", "Email", "Active", "CreationTime")
-                .WhereFalse("Deleted");
+            var query = new Query(TableName).Select("Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
 
             if (!string.IsNullOrEmpty(name))
             {
@@ -43,8 +41,7 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
 
         public virtual async Task<IEnumerable<Customer>> GetAllCustomersAsync()
         {
-            var query = new Query(TableName).Select("Username", "Email", "Active", "CreationTime")
-                .WhereFalse("Deleted");
+            var query = new Query(TableName).Select("Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
 
             var sqlResult = GetSqlResult(query);
 
@@ -53,42 +50,29 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
 
         public virtual async Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize)
         {
+            #region TotalCount
+
             IDbSession session = await Task.Run(() => DbSession);
-            int totalCount;
-            StringBuilder countBuilder = new StringBuilder();
 
-            if ((string.IsNullOrEmpty(username) && string.IsNullOrEmpty(email)))
+            var totalCountQuery = new Query().FromRaw($"{TableName} WITH (NOLOCK)").WhereFalse("Deleted").AsCount();
+
+            if (!string.IsNullOrEmpty(username))
             {
-                countBuilder.AppendFormat("SELECT rows FROM sys.sysindexes WHERE id=OBJECT_ID('{0}') AND indid < 2", TableName);
-            }
-            else
-            {
-                countBuilder.AppendFormat("SELECT COUNT(1) FROM {0} WITH(NOLOCK) WHERE 1=1 ", TableName);
+                totalCountQuery = totalCountQuery.WhereStarts("Username", username);
             }
 
-            if (!string.IsNullOrEmpty(username) || !string.IsNullOrEmpty(email))
+            if (!string.IsNullOrEmpty(email))
             {
-                DynamicParameters countParameters = new DynamicParameters();
-
-                if (!string.IsNullOrEmpty(username))
-                {
-                    countBuilder.Append("AND Username LIKE CONCAT(@Username,'%') ");
-                    countParameters.Add("Username", username, DbType.String);
-                }
-                if (!string.IsNullOrEmpty(email))
-                {
-                    countBuilder.Append("AND Email LIKE CONCAT(@Email,'%')");
-                    countParameters.Add("Email", email, DbType.String);
-                }
-                countBuilder.Append(";");
-
-                totalCount = await session.Connection.QueryFirstOrDefaultAsync<int>(countBuilder.ToString(), countParameters);
+                totalCountQuery = totalCountQuery.WhereStarts("Email", email);
             }
-            else
-            {
-                countBuilder.Append(";");
-                totalCount = await session.Connection.QueryFirstOrDefaultAsync<int>(countBuilder.ToString());
-            }
+
+            SqlResult totalCountResult = GetSqlResult(totalCountQuery);
+
+            int totalCount = await session.Connection.QueryFirstOrDefaultAsync<int>(totalCountResult.Sql, totalCountResult.NamedBindings);
+
+            #endregion
+
+            #region Paged Customers
 
             int totalPage = totalCount <= pageSize ? 1 : totalCount > pageSize && totalCount < (pageSize * 2) ? 2 : totalCount / pageSize; // 总页数
 
@@ -103,40 +87,36 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
             if (isLastPage)
             {
                 lastPageSize = totalCount % pageSize; // 取模得到最后一页的记录数
-                descBound = descBound - lastPageSize; // 重新计算最后一页的偏移量
+                descBound -= lastPageSize; // 重新计算最后一页的偏移量
             }
             else
             {
-                descBound = descBound - pageSize; // 正常重新计算除最后一页的偏移量
+                descBound -= pageSize; // 正常重新计算除最后一页的偏移量
             }
 
             bool useDescOrder = pageIndex <= midPage; // 判断是否采取倒排优化
 
-            DynamicParameters parameters = new DynamicParameters();
+            Query customerQuery = new Query(TableName).Select("Id", "Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
 
-            parameters.Add("Username", username, DbType.String);
-            parameters.Add("Email", email, DbType.String);
-            parameters.Add("PageLowerBound", useDescOrder ? pageIndex * pageSize : descBound, DbType.Int32);
-            parameters.Add("PageSize", isLastPage ? lastPageSize : pageSize, DbType.Int32);
-
-            StringBuilder builder = new StringBuilder(50);
-
-            builder.AppendFormat("SELECT Id,Username,Email,Active,Deleted,CreationTime FROM {0} WHERE 1=1 ", TableName);
             if (!string.IsNullOrEmpty(username))
             {
-                builder.Append("AND Username LIKE CONCAT(@Username,'%') ");
+                customerQuery = customerQuery.WhereStarts("Username", username);
             }
 
             if (!string.IsNullOrEmpty(email))
             {
-                builder.Append("AND Email LIKE CONCAT(@Email,'%') ");
+                customerQuery = customerQuery.WhereStarts("Email", email);
             }
-            builder.AppendFormat("{0} OFFSET @PageLowerBound ROWS FETCH NEXT @PageSize ROWS ONLY ", useDescOrder ? "ORDER BY Id DESC" : "ORDER BY Id");
+
+            customerQuery = customerQuery.Limit(isLastPage ? lastPageSize : pageSize).Offset(useDescOrder ? pageIndex * pageSize : descBound);
+
+            customerQuery = useDescOrder ? customerQuery.OrderByDesc("Id") : customerQuery.OrderBy("Id");
+
+            SqlResult customerResult = GetSqlResult(customerQuery);
 
             try
             {
-                var customers = await session.Connection.QueryAsync<Customer>(builder.ToString(), parameters,
-                    session.Transaction, commandType: CommandType.Text);
+                var customers = await session.Connection.QueryAsync<Customer>(customerResult.Sql, customerResult.NamedBindings);
 
                 return new Tuple<int, IEnumerable<Customer>>(totalCount, customers);
             }
@@ -149,6 +129,8 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
             {
                 session.Dispose();
             }
+
+            #endregion
         }
 
         public virtual async Task<int> InsertCustomerAsync(Customer customer)
