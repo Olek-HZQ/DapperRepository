@@ -114,12 +114,6 @@ My personal WeChat applet：
 
 Demo Address: 
 
-If you are from China or a country close to China,please visit:
-
-http://dapperrepository.poetrysharing.com
-
-Ohers:
-
 http://dp.coolwecool.com
 
 All contents of this package are licensed under the [MIT license](https://opensource.org/licenses/MIT).
