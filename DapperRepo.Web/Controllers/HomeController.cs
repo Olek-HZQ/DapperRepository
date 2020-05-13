@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using DapperRepo.Core.Domain.Customers;
-using DapperRepo.Services.BaseInterfaces;
+using DapperRepo.Services.Customers;
 using Microsoft.AspNetCore.Mvc;
 using DapperRepo.Web.Models;
 

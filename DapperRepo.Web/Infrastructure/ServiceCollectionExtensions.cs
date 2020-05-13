@@ -5,6 +5,7 @@ using DapperRepo.Core;
 using DapperRepo.Core.Cache;
 using DapperRepo.Core.Constants;
 using DapperRepo.Core.Infrastructure;
+using DapperRepo.Services.Customers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,7 +49,7 @@ namespace DapperRepo.Web.Infrastructure
                     RegisterRepository(builder, ConnKeyConstants.Mssql);
 
                     // Services
-                    RegisterService(builder, ConnKeyConstants.Mssql);
+                    RegisterService(builder);
 
                     break;
 
@@ -58,7 +59,7 @@ namespace DapperRepo.Web.Infrastructure
                     RegisterRepository(builder, ConnKeyConstants.Mysql);
 
                     // Services
-                    RegisterService(builder, ConnKeyConstants.Mysql);
+                    RegisterService(builder);
 
                     break;
 
@@ -83,15 +84,9 @@ namespace DapperRepo.Web.Infrastructure
                 .InstancePerLifetimeScope();
         }
 
-        private static void RegisterService(ContainerBuilder builder, string registerDbTypeName)
+        private static void RegisterService(ContainerBuilder builder)
         {
-            string namespacePrefix = $"DapperRepo.Services.{registerDbTypeName}";
-
-            builder.RegisterAssemblyTypes(Assembly.Load("DapperRepo.Services"))
-                .Where(x => x.Namespace != null && x.Namespace.StartsWith(namespacePrefix)
-                                                && x.Name.EndsWith("Service"))
-                .AsImplementedInterfaces()
-                .InstancePerLifetimeScope();
+            builder.RegisterType<CustomerService>().As<ICustomerService>().InstancePerLifetimeScope();
         }
 
         /// <summary>

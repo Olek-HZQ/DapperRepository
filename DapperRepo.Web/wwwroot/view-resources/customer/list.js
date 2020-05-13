@@ -55,10 +55,10 @@
                 align: "center",
                 formatter: (value, row) => {
                     var str = "";
-                    str += "<button type=\"button\" class=\"btn btn-primary edit-customer\" data-customer-id=" +
+                    str += "<button type=\"button\" class=\"btn btn-outline-primary btn-sm edit-customer\" data-customer-id=" +
                         row.Id +
                         " data-toggle=\"modal\" data-target=\"#CustomerEditModal\"><i class=\"fa fa-edit\" aria-hidden=\"true\"></i> Edit</button> ";
-                    str += "<button type=\"button\" class=\"btn btn-primary delete-customer\" data-customer-id=" +
+                    str += "<button type=\"button\" class=\"btn btn-outline-danger btn-sm delete-customer\" data-customer-id=" +
                         row.Id +
                         "><i class=\"fa fa-times\" aria-hidden=\"true\"></i> Delete</button>";
 

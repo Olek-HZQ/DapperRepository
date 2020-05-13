@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DapperRepo.Core.Domain.Customers;
 
-namespace DapperRepo.Services.BaseInterfaces
+namespace DapperRepo.Services.Customers
 {
     public interface ICustomerService
     {

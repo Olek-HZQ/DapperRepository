@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DapperRepo.Core.Domain.Customers;
 using DapperRepo.Data.Repositories.BaseInterfaces;
-using DapperRepo.Services.BaseInterfaces;
 
-namespace DapperRepo.Services.Mssql.Customers
+namespace DapperRepo.Services.Customers
 {
     public class CustomerService : ICustomerService
     {
