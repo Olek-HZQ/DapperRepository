@@ -1,0 +1,217 @@
+﻿
+@{
+    ViewData["Title"] = "KendouiList";
+}
+
+@section CssList{
+    <link href="~/lib/kendo-ui/styles/kendo.common.min.css" rel="stylesheet" />
+    <link href="~/lib/kendo-ui/styles/kendo.silver.min.css" rel="stylesheet" />
+}
+
+@section Scripts{
+    <script src="~/lib/kendo-ui/js/kendo.web.min.js"></script>
+}
+
+<form id="search-form">
+    <div class="row">
+        <div class="form-group col-sm-6">
+            <label for="search-username" class="col-sm-2">Username</label>
+            <div class="col-sm-10">
+                <input type="text" placeholder="Please input username" class="form-control k-textbox" id="search-username">
+            </div>
+        </div>
+        <div class="form-group col-sm-6">
+            <label for="search-email" class="col-sm-2">Email</label>
+            <div class="col-sm-10">
+                <input type="email" placeholder="Please input email" class="form-control k-textbox" id="search-email">
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-4">
+            <button type="button" id="btn-search" class="k-button">
+                <span class="k-icon k-i-search"></span> Search
+            </button>
+        </div>
+    </div>
+</form>
+
+<div id="customer-grid" style="height: 500px"></div>
+
+<script>
+    $(function() {
+        // ReSharper disable once PossiblyUnassignedProperty
+        $("#customer-grid").kendoGrid({
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "@Html.Raw(Url.Action("KendouiCustomerList", "Customer"))",
+                        type: "POST",
+                        contentType: "application/json",
+                        dataType: "json",
+                        data: additionalData
+                    },
+                    create: {
+                        url: "@Html.Raw(Url.Action("KendoCreateCustomer", "Customer"))",
+                        type: "POST",
+                        dataType: "json"
+                    },
+                    update: {
+                        url: "@Html.Raw(Url.Action("KendoEditCustomer", "Customer"))",
+                        type: "POST",
+                        dataType: "json"
+                    },
+                    destroy: {
+                        url: "@Html.Raw(Url.Action("KendoDeleteCustomer", "Customer"))",
+                        type: "POST",
+                        dataType: "json"
+                    },
+                    parameterMap: function(data, operation) {
+                        if (operation !== "read") {
+                            return data;
+                        } else {
+                            var postData = {
+                                Username: data.Username,
+                                Email: data.Email,
+                                PageIndex: data.page,
+                                PageSize: data.pageSize
+                            };
+                            // ReSharper disable once UseOfImplicitGlobalInFunctionScope
+                            return JSON.stringify(postData);
+
+                        }
+                    }
+                },
+                schema: {
+                    data: "Data",
+                    total: "Total",
+                    errors: "Errors",
+                    model: {
+                        id: "Id",
+                        fields: {
+                            Username: {
+                                editable: true,
+                                type: "string",
+                                validation: {
+                                    required: {
+                                        message: "Please input the Username."
+                                    }
+                                }
+                            },
+                            Email: {
+                                editable: true,
+                                type: "string"
+                            },
+                            Active: {
+                                editable: true,
+                                type: "boolean"
+                            },
+                            CreationTime: {
+                                editable: false,
+                                type: "string"
+                            },
+                            Id: { editable: false, type: "number" }
+                        }
+                    }
+                },
+                requestEnd: function(e) {
+                    if (e.type === "create" || e.type === "update") {
+                        this.read();
+                    }
+                },
+                error: function(e) {
+                    if (e.errors) {
+                        if ((typeof e.errors) === "string") {
+                            //single error
+                            //display the message
+                            $.alert("Error happened:\n" + e.errors);
+                        }
+                    }
+                    // Cancel the changes
+                    this.cancelChanges();
+                },
+                pageSize: 15,
+                serverPaging: true,
+                serverFiltering: true,
+                serverSorting: true
+            },
+            pageable: {
+                refresh: true,
+                pageSizes: [5, 15, 25, 50, 100]
+            },
+            toolbar: [{ name: "create", text: "Add" }],
+            editable: {
+                confirmation: "Are you sure to delete this record ?",
+                mode: "inline"
+            },
+            scrollable: true,
+            columns: [
+                {
+                    field: "Username",
+                    title: "Name",
+                    width: 300
+                }, {
+                    field: "Email",
+                    title: "Email",
+                    editor: function(container, options) {
+                        $('<input class="k-textbox" name="Email" type="email" data-bind="value: ' +
+                                options.field +
+                                '" data-email-msg="The email format is incorrect." required>')
+                            .appendTo(container);
+                    },
+                    width: 300
+                }, {
+                    field: "Active",
+                    title: "Active",
+                    headerAttributes: { style: "text-align:center" },
+                    attributes: { style: "text-align:center" },
+                    template: '# if(Active) {# <span class="k-icon k-i-checkmark"></span> #} else {# <span class="k-icon k-i-close"></span> #} #'
+                }, {
+                    field: "CreationTime",
+                    title: "CreationTime",
+                    attributes: { style: "text-align:center" }
+                }, {
+                    command: [
+                        {
+                            name: "edit",
+                            text: {
+                                edit: "Edit",
+                                update: "Update",
+                                cancel: "Cancel"
+                            }
+                        }, {
+                            name: "destroy",
+                            text: "Delete"
+                        }
+                    ],
+                    width: 200
+                }
+            ]
+        });
+    });
+
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-search').click(function () {
+            var grid = $('#customer-grid').data('kendoGrid');
+            grid.dataSource.page(1);
+            return false;
+        });
+    });
+    function additionalData() {
+        var data = {
+            Username: $('#search-username').val(),
+            Email: $('#search-email').val()
+        };
+
+        return data;
+    }
+    $("".concat("#search-username,", "#search-email")).keydown(function (event) {
+        if (event.keyCode === 13) {
+            $("#btn-search").click();
+            return false;
+        }
+        // ReSharper disable once NotAllPathsReturnValue
+    });
+</script>

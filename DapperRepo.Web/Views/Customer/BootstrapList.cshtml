@@ -1,0 +1,56 @@
+﻿
+@{
+    ViewData["Title"] = "BootstrapList";
+}
+@section CssList{
+    <link href="~/lib/bootstrap-table/bootstrap-table.min.css" rel="stylesheet" />
+    <link href="~/lib/jquery-confirm/jquery-confirm.min.css" rel="stylesheet" />
+}
+
+@section Scripts{
+    <script src="~/lib/bootstrap-table/bootstrap-table.min.js"></script>
+    @*<script src="~/lib/bootstrap-table/locale/bootstrap-table-zh-CN.js"></script>*@
+    <script src="~/lib/jquery-confirm/jquery-confirm.min.js"></script>
+    <script src="~/view-resources/bootstrap/customer/list.js"></script>
+}
+
+<form id="search-form">
+    <div class="row">
+        <div class="form-group col-sm-6">
+            <label for="search-username" class="col-sm-2">Username</label>
+            <div class="col-sm-10">
+                <input type="text" placeholder="Please input username" class="form-control" id="search-username">
+            </div>
+        </div>
+        <div class="form-group col-sm-6">
+            <label for="search-email" class="col-sm-2">Email</label>
+            <div class="col-sm-10">
+                <input type="email" placeholder="Please input email" class="form-control" id="search-email">
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-4">
+            <button type="button" id="btn-search" class="btn btn-outline-primary btn-sm">
+                <span class="fa fa-search" aria-hidden="true"></span> Search
+            </button>
+        </div>
+    </div>
+</form>
+
+<div id="toolbar" style="margin-bottom: 10px;">
+    <button id="btn-add" type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#CustomerCreateModal">
+        <span class="fa fa-plus" aria-hidden="true"></span> Add
+    </button>
+</div>
+
+<table id="customer-table" class="table table-bordered"></table>
+
+@await Html.PartialAsync("_CreateModal")
+
+<div class="modal fade" id="CustomerEditModal" tabindex="-1" role="dialog" aria-labelledby="CustomerEditModalLabel" data-backdrop="static">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DapperRepo.Core.Domain.Customers;
 using DapperRepo.Services.Customers;
+using DapperRepo.Web.Kendoui;
 using DapperRepo.Web.Models.Customers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,12 +19,17 @@ namespace DapperRepo.Web.Controllers
             _customerService = customerService;
         }
 
-        public IActionResult Index()
+        public IActionResult BootstrapList()
         {
             return View();
         }
 
-        public IActionResult List()
+        public IActionResult LayuiList()
+        {
+            return View();
+        }
+
+        public IActionResult KendouiList()
         {
             return View();
         }
@@ -48,7 +54,7 @@ namespace DapperRepo.Web.Controllers
 
             return Json(new { rows = customers, total = result.Item1 });
         }
-        
+
         public async Task<ActionResult> LayuiCustomerList(SearchCustomerModel model)
         {
             var result = await _customerService.GetPagedCustomers(model.Username, model.Email, model.PageIndex - 1, model.PageSize);
@@ -69,6 +75,111 @@ namespace DapperRepo.Web.Controllers
             return Json(new { code = 0, data = customers, count = result.Item1 });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> KendouiCustomerList([FromBody] SearchCustomerModel model)
+        {
+            try
+            {
+                var result = await _customerService.GetPagedCustomers(model.Username, model.Email, model.PageIndex - 1, model.PageSize);
+
+                List<CustomerModel> customers = result.Item2.Select(x =>
+                {
+                    CustomerModel customerModel = new CustomerModel
+                    {
+                        Id = x.Id,
+                        Username = x.Username,
+                        Email = x.Email,
+                        Active = x.Active,
+                        CreationTime = x.CreationTime.ToString("yyyy-MM-dd")
+                    };
+                    return customerModel;
+                }).ToList();
+
+                var gridModel = new DataSourceResult
+                {
+                    Data = customers,
+                    Total = result.Item1
+                };
+
+                return Json(gridModel);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> KendoCreateCustomer(CustomerModel model)
+        {
+            try
+            {
+                Customer customer = new Customer
+                {
+                    Username = model.Username.Trim(),
+                    Email = model.Email.Trim(),
+                    Active = model.Active,
+                    CreationTime = DateTime.Now
+                };
+
+                int result = await _customerService.InsertCustomerAsync(customer);
+
+                return Json(new { status = result, msg = result > 0 ? "Created successfully" : "Created failed" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new DataSourceResult { Errors = $"Create Customer failed. Error Message:{ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> KendoEditCustomer(CustomerModel model)
+        {
+            try
+            {
+                Customer customer = await _customerService.GetCustomerByIdAsync(model.Id);
+
+                if (customer == null)
+                {
+                    return RedirectToAction("KendouiList");
+                }
+
+                customer.Username = model.Username;
+                customer.Email = model.Email;
+                customer.Active = model.Active;
+
+                var result = await _customerService.UpdateCustomerAsync(customer);
+
+                return Json(new { status = result, msg = result ? "Edited successfully" : "Edited failed" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new DataSourceResult { Errors = $"Edited Customer failed. Error Message:{ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> KendoDeleteCustomer(int id)
+        {
+            try
+            {
+                Customer customer = await _customerService.GetCustomerByIdAsync(id);
+
+                if (customer == null)
+                {
+                    return RedirectToAction("KendouiList");
+                }
+
+                var result = await _customerService.DeleteCustomerAsync(customer);
+
+                return Json(new { status = result, msg = result ? "Deleted successfully" : "Deleted failed" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new DataSourceResult { Errors = $"Deleted Customer failed. Error Message:{ex.Message}" });
+            }
+        }
 
         public async Task<ActionResult> PopCustomer(string viewName, int id = 0)
         {
@@ -82,7 +193,7 @@ namespace DapperRepo.Web.Controllers
 
                 if (customer == null)
                 {
-                    return RedirectToAction("List");
+                    return RedirectToAction("LayuiList");
                 }
 
                 model.Id = customer.Id;
@@ -124,7 +235,7 @@ namespace DapperRepo.Web.Controllers
 
             if (customer == null)
             {
-                return RedirectToAction("Index");
+                return RedirectToAction("BootstrapList");
             }
 
             CustomerModel model = new CustomerModel

@@ -5,35 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DapperRepo.Web</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-    <link href="~/layui/css/layui.css" rel="stylesheet" />
-    <link href="~/lib/bootstrap-table/bootstrap-table.min.css" rel="stylesheet" />
-    <link href="~/lib/font-awesome/css/all.css" rel="stylesheet" />
-    <link href="~/lib/jquery-confirm/jquery-confirm.min.css" rel="stylesheet" />
+    <link href="~/lib/font-awesome/css/all.min.css" rel="stylesheet" />
+    @await RenderSectionAsync("CssList", false)
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
-    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/layui/layui.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DapperRepo</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DapperRepository</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                    <span class="k-icon k-i-reorder"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="Index">Bootstrap UI</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="KendouiList">Kendoui</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="List">Layui</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="BootstrapList">Bootstrap</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="LayuiList">Layui</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" href="https://github.com/Olek-HZQ/DapperRepository" target="_blank">GitHub Address</a>
@@ -48,11 +48,13 @@
             <h1 style="text-align: center; color: #ffffff; background-color: #c0c0c0;">Demo based on Dapper.Net repository pattern</h1>
             <br />
             @RenderBody()
-            @*<footer>
-                <h3 style="text-align: center;">Author: olek-hzq Email: 875755898@qq.com</h3>
-            </footer>*@
         </main>
     </div>
-    @RenderSection("Scripts", required: false)
+    @*<footer class="border-top footer text-muted">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+            <embed src="~/images/jetbrains.svg" type="image/svg+xml" />
+        </svg>
+    </footer>*@
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
