@@ -1,4 +1,7 @@
 ﻿@model DapperRepo.Web.Models.Customers.CustomerModel
+@{
+    Layout = "";
+}
 
 @await Html.PartialAsync("Modals/_ModalHeader", "Edit Customer")
 <form id="edit-customer-form">
@@ -25,4 +28,5 @@
     </div>
     @await Html.PartialAsync("Modals/_ModalFooter")
 </form>
-<script src="~/view-resources/customer/editModal.js" asp-append-version="true"></script>
+
+<script src="~/view-resources/bootstrap/customer/editModal.js" asp-append-version="true"></script>
