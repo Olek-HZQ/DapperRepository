@@ -43,7 +43,8 @@ html {
 }
 
 .box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+    box-shadow: 0 .25rem .75rem #000000;
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
 }
 
 button.accept-policy {
@@ -72,4 +73,20 @@ body {
 
 .error {
     color: #dc143c;
+}
+
+.k-numerictextbox {
+    width: 100%;
+}
+
+.k-datetimepicker {
+    width: 100%;
+}
+
+.k-dropdown {
+    width: 100%;
+}
+
+.k-textbox {
+    width: 100%;
 }
