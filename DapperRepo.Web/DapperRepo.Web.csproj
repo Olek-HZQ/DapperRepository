@@ -23,10 +23,6 @@
     <ProjectReference Include="..\DapperRepo.Services\DapperRepo.Services.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\view-resources\kendoui\" />
-  </ItemGroup>
-
 
 
 </Project>
