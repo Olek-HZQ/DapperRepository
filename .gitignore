@@ -135,7 +135,7 @@ App_Data/*.mdf
 App_Data/*.ldf
 
 # DbConnectionSettings.json
-App_Data/*.json
+DbConnSettings.json
 
 # =========================
 # Windows detritus
