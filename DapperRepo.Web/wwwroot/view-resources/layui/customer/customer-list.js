@@ -46,8 +46,7 @@ layui.use(["table", "form", "layer"], function () {
             {
                 field: "CreationTime",
                 title: "CreationTime",
-                align: "center",
-                sort: true
+                align: "center"
             },
             {
                 fixed: "right",

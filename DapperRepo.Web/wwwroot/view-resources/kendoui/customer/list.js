@@ -25,7 +25,7 @@
                     type: "POST",
                     dataType: "json"
                 },
-                parameterMap: function (data, operation) {
+                parameterMap: function(data, operation) {
                     if (operation !== "read") {
                         return data;
                     } else {
@@ -73,12 +73,12 @@
                     }
                 }
             },
-            requestEnd: function (e) {
+            requestEnd: function(e) {
                 if (e.type === "create" || e.type === "update") {
                     this.read();
                 }
             },
-            error: function (e) {
+            error: function(e) {
                 if (e.errors) {
                     if ((typeof e.errors) === "string") {
                         //single error
@@ -89,19 +89,21 @@
                 // Cancel the changes
                 this.cancelChanges();
             },
-            pageSize: 15,
+            pageSize: 10,
             serverPaging: true,
             serverFiltering: true,
             serverSorting: true
         },
         pageable: {
-            refresh: true,
-            pageSizes: [5, 15, 25, 50, 100]
+            buttonCount: 5,
+            input: true,
+            pageSizes: [5, 10, 15, 20, 25, 30, 50, 100],
+            refresh: true
         },
         toolbar: [{ name: "create", text: "Add" }],
         editable: {
             confirmation: "Are you sure to delete this record ?",
-            mode: "inline"
+            mode: "popup"
         },
         scrollable: true,
         columns: [
@@ -112,10 +114,10 @@
             }, {
                 field: "Email",
                 title: "Email",
-                editor: function (container, options) {
+                editor: function(container, options) {
                     $('<input class="k-textbox" name="Email" type="email" data-bind="value: ' +
-                        options.field +
-                        '" data-email-msg="The email format is incorrect." required>')
+                            options.field +
+                            '" data-email-msg="The email format is incorrect." required>')
                         .appendTo(container);
                 },
                 width: 300
@@ -124,11 +126,14 @@
                 title: "Active",
                 headerAttributes: { style: "text-align:center" },
                 attributes: { style: "text-align:center" },
-                template: '# if(Active) {# <span class="k-icon k-i-checkmark"></span> #} else {# <span class="k-icon k-i-close"></span> #} #'
+                template:
+                    '# if(Active) {# <span class="k-icon k-i-checkmark"></span> #} else {# <span class="k-icon k-i-close"></span> #} #',
+                width: 100
             }, {
                 field: "CreationTime",
                 title: "CreationTime",
-                attributes: { style: "text-align:center" }
+                attributes: { style: "text-align:center" },
+                width: 100
             }, {
                 command: [
                     {
@@ -145,7 +150,11 @@
                 ],
                 width: 200
             }
-        ]
+        ],
+        edit: function (e) {
+            e.container.find("div.k-edit-label:last").hide();
+            e.container.find("div.k-no-editor:last").hide();
+        }
     });
 
     $("#btn-search").click(function () {
