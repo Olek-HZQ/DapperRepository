@@ -133,7 +133,7 @@
                 field: "CreationTime",
                 title: "CreationTime",
                 attributes: { style: "text-align:center" },
-                width: 100
+                width: 150
             }, {
                 command: [
                     {
@@ -148,7 +148,8 @@
                         text: "Delete"
                     }
                 ],
-                width: 200
+                width: 200,
+                title: "Action"
             }
         ],
         edit: function (e) {

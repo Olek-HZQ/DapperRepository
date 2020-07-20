@@ -1,3 +1,4 @@
+using System;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using DapperRepo.Web.Infrastructure;
@@ -34,18 +35,9 @@ namespace DapperRepo.Web
         /// This method gets called by the runtime. Use this method to add services to the container.
         /// </summary>
         /// <param name="services"></param>
-        public void ConfigureServices(IServiceCollection services)
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.ConfigureApplicationServices(Configuration, HostEnvironment);
-        }
-
-        // ConfigureContainer is where you can register things directly
-        // with Autofac. This runs after ConfigureServices so the things
-        // here will override registrations made in ConfigureServices.
-        // Don't build the container; that gets done for you by the factory.
-        public void ConfigureContainer(ContainerBuilder builder)
-        {
-            builder.DependencyRegistrar(Configuration);
+            return services.ConfigureApplicationServices(Configuration, HostEnvironment);
         }
 
         /// <summary>

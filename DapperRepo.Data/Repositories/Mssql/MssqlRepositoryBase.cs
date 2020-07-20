@@ -23,7 +23,10 @@ namespace DapperRepo.Data.Repositories.Mssql
 
         protected override SqlResult GetSqlResult(Query query)
         {
-            var compiler = new SqlServerCompiler();
+            var compiler = new SqlServerCompiler
+            {
+                UseLegacyPagination = false
+            };
 
             SqlResult sqlResult = compiler.Compile(query);
 

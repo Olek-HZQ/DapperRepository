@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Reflection;
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using DapperRepo.Core;
 using DapperRepo.Core.Cache;
+using DapperRepo.Core.Configuration;
 using DapperRepo.Core.Constants;
 using DapperRepo.Core.Infrastructure;
 using DapperRepo.Services.Customers;
@@ -14,7 +16,7 @@ namespace DapperRepo.Web.Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
-        public static void ConfigureApplicationServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment hostEnvironment)
+        public static IServiceProvider ConfigureApplicationServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment hostEnvironment)
         {
             services.AddControllersWithViews().AddJsonOptions(options =>
                 {
@@ -24,11 +26,14 @@ namespace DapperRepo.Web.Infrastructure
                 .AddControllersAsServices();
 
             CommonHelper.DefaultFileProvider = new AppFileProvider(hostEnvironment.ContentRootPath);
-        }
 
-        public static void DependencyRegistrar(this ContainerBuilder builder, IConfiguration configuration)
-        {
-            if (bool.Parse(configuration.GetSection("AppConfig:RedisEnabled").Value))
+            //add AppConfig configuration parameters
+            var appConfig = services.ConfigureStartupConfig<AppConfig>(configuration.GetSection("AppConfig"));
+
+            var builder = new ContainerBuilder();
+            builder.Populate(services);
+
+            if (appConfig.RedisEnabled)
             {
                 builder.RegisterType<RedisConnectionWrapper>()
                     .As<ILocker>()
@@ -41,7 +46,7 @@ namespace DapperRepo.Web.Infrastructure
                 });
             }
 
-            switch (configuration.GetSection("AppConfig:CurrentDbTypeName").Value)
+            switch (appConfig.CurrentDbTypeName)
             {
                 case ConnKeyConstants.Mssql:
 
@@ -69,6 +74,8 @@ namespace DapperRepo.Web.Infrastructure
 
                     break;
             }
+
+            return new AutofacServiceProvider(builder.Build());
         }
 
         #region for auofac dependency
@@ -98,5 +105,32 @@ namespace DapperRepo.Web.Infrastructure
         }
 
         #endregion
+
+        /// <summary>
+        /// Create, bind and register as service the specified configuration parameters 
+        /// </summary>
+        /// <typeparam name="TConfig">Configuration parameters</typeparam>
+        /// <param name="services">Collection of service descriptors</param>
+        /// <param name="configuration">Set of key/value application configuration properties</param>
+        /// <returns>Instance of configuration parameters</returns>
+        public static TConfig ConfigureStartupConfig<TConfig>(this IServiceCollection services, IConfiguration configuration) where TConfig : class, new()
+        {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
+            if (configuration == null)
+                throw new ArgumentNullException(nameof(configuration));
+
+            //create instance of config
+            var config = new TConfig();
+
+            //bind it to the appropriate section of configuration
+            configuration.Bind(config);
+
+            //and register it as a service
+            services.AddSingleton(config);
+
+            return config;
+        }
     }
 }

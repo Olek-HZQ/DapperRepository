@@ -155,6 +155,30 @@ namespace DapperRepo.Core.Cache
         }
 
         /// <summary>
+        /// Get a cached item async. If it's not in the cache yet, then load and cache it
+        /// </summary>
+        /// <typeparam name="T">Type of cached item</typeparam>
+        /// <param name="key">Cache key</param>
+        /// <param name="acquire">Function to load item if it's not in the cache yet</param>
+        /// <param name="cacheTime">Cache time in minutes</param>
+        /// <returns>The cached value associated with the specified key</returns>
+        public async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int cacheTime = 60)
+        {
+            //item already is in cache, so return it
+            if (await IsSetAsync(key))
+                return await GetAsync<T>(key);
+
+            //or create it using passed function
+            var result =  await acquire();
+
+            //and set in cache (if cache time is defined)
+            if (cacheTime > 0)
+                SetAsync(key, result, cacheTime).Wait();
+
+            return result;
+        }
+
+        /// <summary>
         /// Adds the specified key and object to the cache
         /// </summary>
         /// <param name="key">Key of cached item</param>

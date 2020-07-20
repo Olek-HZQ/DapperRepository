@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace DapperRepo.Core.Cache
 {
@@ -16,6 +17,17 @@ namespace DapperRepo.Core.Cache
         /// <param name="cacheTime">Cache time in minutes</param>
         /// <returns>The cached value associated with the specified key</returns>
         T Get<T>(string key, Func<T> acquire, int cacheTime = 60);
+
+
+        /// <summary>
+        /// Get a cached item async. If it's not in the cache yet, then load and cache it
+        /// </summary>
+        /// <typeparam name="T">Type of cached item</typeparam>
+        /// <param name="key">Cache key</param>
+        /// <param name="acquire">Function to load item if it's not in the cache yet</param>
+        /// <param name="cacheTime">Cache time in minutes</param>
+        /// <returns>The cached value associated with the specified key</returns>
+        Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int cacheTime = 60);
 
         /// <summary>
         /// Adds the specified key and object to the cache
