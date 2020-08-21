@@ -70,29 +70,16 @@ namespace DapperRepo.Data.Repositories.Mssql.Customers
 
                 dynamicParameters.Add("Username", username, DbType.String, ParameterDirection.Input);
                 dynamicParameters.Add("Email", email, DbType.String, ParameterDirection.Input);
-                dynamicParameters.Add("pageIndex", pageIndex, DbType.Int32, ParameterDirection.Input);
-                dynamicParameters.Add("pageSize", pageSize, DbType.Int32, ParameterDirection.Input);
+                dynamicParameters.Add("PageIndex", pageIndex, DbType.Int32, ParameterDirection.Input);
+                dynamicParameters.Add("PageSize", pageSize, DbType.Int32, ParameterDirection.Input);
                 dynamicParameters.Add("TotalRecords", 0, DbType.Int32, ParameterDirection.Output);
 
-                try
-                {
-                    customers = await session.Connection.QueryAsync<Customer>("[dbo].[CustomerPaged]", dynamicParameters, commandType: CommandType.StoredProcedure);
-                    totalRecord = dynamicParameters.Get<int>("TotalRecords");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-                finally
-                {
-                    session.Dispose();
-                }
+                customers = await session.Connection.QueryAsync<Customer>("[dbo].[CustomerPaged]", dynamicParameters, commandType: CommandType.StoredProcedure);
+                totalRecord = dynamicParameters.Get<int>("TotalRecords");
+                session.Dispose();
             }
             else
             {
-                #region TotalCount
-
                 Query totalRecordQuery = new Query().FromRaw($"{TableName} WITH (NOLOCK)").WhereFalse("Deleted").AsCount();
 
                 if (!string.IsNullOrEmpty(username))
@@ -107,35 +94,7 @@ namespace DapperRepo.Data.Repositories.Mssql.Customers
 
                 SqlResult totalRecordResult = GetSqlResult(totalRecordQuery);
 
-                totalRecord = await session.Connection.QueryFirstOrDefaultAsync<int>(totalRecordResult.Sql, totalRecordResult.NamedBindings);
-
-                #endregion
-
-                #region Paged Customers
-
-                int totalPage = totalRecord <= pageSize ? 1 : totalRecord > pageSize && totalRecord < (pageSize * 2) ? 2 : totalRecord / pageSize; // 总页数
-
-                int midPage = totalPage / 2 + 1; //中间页数，大于该页数则采用倒排优化
-
-                bool isLastPage = pageIndex == totalPage; // 是否最后一页，是最后一页则需要进行取模算出最后一页的记录数（可能小于PageSize）
-
-                int descBound = (totalRecord - pageIndex * pageSize); // 重新计算limit偏移量
-
-                int lastPageSize = 0; // 计算最后一页的记录数
-
-                if (isLastPage)
-                {
-                    lastPageSize = totalRecord % pageSize; // 取模得到最后一页的记录数
-                    descBound -= lastPageSize; // 重新计算最后一页的偏移量
-                }
-                else
-                {
-                    descBound -= pageSize; // 正常重新计算除最后一页的偏移量
-                }
-
-                bool useDescOrder = pageIndex <= midPage; // 判断是否采取倒排优化
-
-                Query customerQuery = new Query(TableName).Select("Id", "Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
+                Query customerQuery = new Query().FromRaw($"{TableName} WITH (NOLOCK)").Select("Id", "Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
 
                 if (!string.IsNullOrEmpty(username))
                 {
@@ -147,27 +106,16 @@ namespace DapperRepo.Data.Repositories.Mssql.Customers
                     customerQuery = customerQuery.WhereStarts("Email", email);
                 }
 
-                customerQuery = customerQuery.Limit(isLastPage ? lastPageSize : pageSize).Offset(useDescOrder ? pageIndex * pageSize : descBound);
-
-                customerQuery = useDescOrder ? customerQuery.OrderByDesc("Id") : customerQuery.OrderBy("Id");
-
+                customerQuery = customerQuery.OrderByDesc("Id").Limit(pageSize).Offset(pageIndex * pageSize);
                 SqlResult customerResult = GetSqlResult(customerQuery);
 
-                try
-                {
-                    customers = await session.Connection.QueryAsync<Customer>(customerResult.Sql, customerResult.NamedBindings);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-                finally
-                {
-                    session.Dispose();
-                }
+                var multi = await session.Connection.QueryMultipleAsync(customerResult.Sql + ";" + totalRecordResult.Sql, customerResult.NamedBindings);
+                var result = await multi.ReadAsync<Customer>();
+                customers = result.ToList();
 
-                #endregion
+                totalRecord = multi.ReadFirst<int>();
+
+                session.Dispose();
             }
 
             return new Tuple<int, IEnumerable<Customer>>(totalRecord, customers);
