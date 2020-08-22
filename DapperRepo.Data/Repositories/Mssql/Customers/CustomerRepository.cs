@@ -81,30 +81,21 @@ namespace DapperRepo.Data.Repositories.Mssql.Customers
             else
             {
                 Query totalRecordQuery = new Query().FromRaw($"{TableName} WITH (NOLOCK)").WhereFalse("Deleted").AsCount();
-
-                if (!string.IsNullOrEmpty(username))
-                {
-                    totalRecordQuery = totalRecordQuery.WhereStarts("Username", username);
-                }
-
-                if (!string.IsNullOrEmpty(email))
-                {
-                    totalRecordQuery = totalRecordQuery.WhereStarts("Email", email);
-                }
-
-                SqlResult totalRecordResult = GetSqlResult(totalRecordQuery);
-
                 Query customerQuery = new Query().FromRaw($"{TableName} WITH (NOLOCK)").Select("Id", "Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
 
                 if (!string.IsNullOrEmpty(username))
                 {
+                    totalRecordQuery = totalRecordQuery.WhereStarts("Username", username);
                     customerQuery = customerQuery.WhereStarts("Username", username);
                 }
 
                 if (!string.IsNullOrEmpty(email))
                 {
+                    totalRecordQuery = totalRecordQuery.WhereStarts("Email", email);
                     customerQuery = customerQuery.WhereStarts("Email", email);
                 }
+
+                SqlResult totalRecordResult = GetSqlResult(totalRecordQuery);
 
                 customerQuery = customerQuery.OrderByDesc("Id").Limit(pageSize).Offset(pageIndex * pageSize);
                 SqlResult customerResult = GetSqlResult(customerQuery);

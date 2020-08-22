@@ -95,7 +95,7 @@
             serverSorting: true
         },
         pageable: {
-            buttonCount: 5,
+            buttonCount: 3,
             input: true,
             pageSizes: [5, 10, 15, 20, 25, 30, 50, 100],
             refresh: true

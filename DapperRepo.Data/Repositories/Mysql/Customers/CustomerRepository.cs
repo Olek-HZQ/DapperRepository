@@ -64,47 +64,38 @@ namespace DapperRepo.Data.Repositories.Mysql.Customers
             IEnumerable<Customer> customers;
             int totalRecord;
 
-            if (_appConfig.UseProcedureForCustomerPaged)
-            {
-                DynamicParameters dynamicParameters = new DynamicParameters();
+            //if (_appConfig.UseProcedureForCustomerPaged)
+            //{
+            //    DynamicParameters dynamicParameters = new DynamicParameters();
 
-                dynamicParameters.Add("Username", username, DbType.String, ParameterDirection.Input);
-                dynamicParameters.Add("Email", email, DbType.String, ParameterDirection.Input);
-                dynamicParameters.Add("PageIndex", pageIndex, DbType.Int32, ParameterDirection.Input);
-                dynamicParameters.Add("PageSize", pageSize, DbType.Int32, ParameterDirection.Input);
-                dynamicParameters.Add("TotalRecords", 0, DbType.Int32, ParameterDirection.Output);
+            //    dynamicParameters.Add("Username", username, DbType.String, ParameterDirection.Input);
+            //    dynamicParameters.Add("Email", email, DbType.String, ParameterDirection.Input);
+            //    dynamicParameters.Add("PageIndex", pageIndex, DbType.Int32, ParameterDirection.Input);
+            //    dynamicParameters.Add("PageSize", pageSize, DbType.Int32, ParameterDirection.Input);
+            //    dynamicParameters.Add("TotalRecords", 0, DbType.Int32, ParameterDirection.Output);
 
-                customers = await session.Connection.QueryAsync<Customer>("CustomerPaged", dynamicParameters, commandType: CommandType.StoredProcedure);
-                totalRecord = dynamicParameters.Get<int>("TotalRecords");
-                session.Dispose();
-            }
-            else
-            {
+            //    customers = await session.Connection.QueryAsync<Customer>("CustomerPaged", dynamicParameters, commandType: CommandType.StoredProcedure);
+            //    totalRecord = dynamicParameters.Get<int>("TotalRecords");
+            //    session.Dispose();
+            //}
+            //else
+            //{
                 Query totalRecordQuery = new Query(TableName).WhereFalse("Deleted").AsCount();
-
-                if (!string.IsNullOrEmpty(username))
-                {
-                    totalRecordQuery = totalRecordQuery.WhereStarts("Username", username);
-                }
-
-                if (!string.IsNullOrEmpty(email))
-                {
-                    totalRecordQuery = totalRecordQuery.WhereStarts("Email", email);
-                }
-
-                SqlResult totalRecordResult = GetSqlResult(totalRecordQuery);
-
                 Query customerQuery = new Query(TableName).Select("Id", "Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
 
                 if (!string.IsNullOrEmpty(username))
                 {
+                    totalRecordQuery = totalRecordQuery.WhereStarts("Username", username);
                     customerQuery = customerQuery.WhereStarts("Username", username);
                 }
 
                 if (!string.IsNullOrEmpty(email))
                 {
+                    totalRecordQuery = totalRecordQuery.WhereStarts("Email", email);
                     customerQuery = customerQuery.WhereStarts("Email", email);
                 }
+
+                SqlResult totalRecordResult = GetSqlResult(totalRecordQuery);
 
                 customerQuery = customerQuery.OrderByDesc("Id").Limit(pageSize).Offset(pageIndex * pageSize);
                 SqlResult customerResult = GetSqlResult(customerQuery);
@@ -116,7 +107,7 @@ namespace DapperRepo.Data.Repositories.Mysql.Customers
                 totalRecord = multi.ReadFirst<int>();
 
                 session.Dispose();
-            }
+            //}
 
             return new Tuple<int, IEnumerable<Customer>>(totalRecord, customers);
         }
