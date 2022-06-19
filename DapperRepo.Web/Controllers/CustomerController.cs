@@ -123,7 +123,8 @@ namespace DapperRepo.Web.Controllers
                     CreationTime = DateTime.Now
                 };
 
-                int result = await _customerService.InsertCustomerAsync(customer);
+                int result = await _customerService.
+                    InsertCustomerAsync(customer);
 
                 return Json(new { status = result, msg = result > 0 ? "Created successfully" : "Created failed" });
             }

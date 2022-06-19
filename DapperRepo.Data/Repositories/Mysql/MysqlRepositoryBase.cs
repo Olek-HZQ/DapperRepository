@@ -1,4 +1,6 @@
-﻿using DapperRepo.Core.Constants;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using DapperRepo.Core.Constants;
 using DapperRepo.Core.Domain;
 using SqlKata;
 using SqlKata.Compilers;
@@ -19,7 +21,19 @@ namespace DapperRepo.Data.Repositories.Mysql
         /// <summary>
         /// 数据表名(默认类名，如果不是，需要在子类重写)
         /// </summary>
-        protected override string TableName => typeof(T).Name;
+        protected override string TableName
+        {
+            get
+            {
+                TableAttribute tableAttribute = (TableAttribute)Attribute.GetCustomAttribute(typeof(T), typeof(TableAttribute));
+                if (tableAttribute != null)
+                {
+                    return tableAttribute.Name;
+                }
+
+                return typeof(T).Name;
+            }
+        }
 
         protected override SqlResult GetSqlResult(Query query)
         {

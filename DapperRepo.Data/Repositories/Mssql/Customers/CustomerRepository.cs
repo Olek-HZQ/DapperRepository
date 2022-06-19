@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Dapper;
+﻿using Dapper;
 using DapperRepo.Core.Configuration;
 using DapperRepo.Core.Data;
 using DapperRepo.Core.Domain.Customers;
 using DapperRepo.Data.Repositories.BaseInterfaces;
 using SqlKata;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DapperRepo.Data.Repositories.Mssql.Customers
 {
