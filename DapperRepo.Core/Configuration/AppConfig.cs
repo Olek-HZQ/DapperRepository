@@ -11,7 +11,5 @@ namespace DapperRepo.Core.Configuration
         public string RedisCachingConnectionString { get; set; }
 
         public string CurrentDbTypeName { get; set; }
-
-        public bool UseProcedureForCustomerPaged { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using DapperRepo.Core.Configuration;
 using DapperRepo.Core.Data;
 using DapperRepo.Core.Domain.Customers;
 using DapperRepo.Data.Repositories.BaseInterfaces;
@@ -15,13 +14,6 @@ namespace DapperRepo.Data.Repositories.Mssql.Customers
 {
     public class CustomerRepository : MssqlRepositoryBase<Customer>, ICustomerRepository
     {
-        private readonly AppConfig _appConfig;
-
-        public CustomerRepository(AppConfig appConfig)
-        {
-            _appConfig = appConfig;
-        }
-
         public virtual async Task<Customer> GetCustomerByIdAsync(int id)
         {
             Customer customer = await GetAsync(id);
@@ -57,14 +49,14 @@ namespace DapperRepo.Data.Repositories.Mssql.Customers
             return await GetListAsync(sqlResult.Sql, sqlResult.NamedBindings);
         }
 
-        public virtual async Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize)
+        public virtual async Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize, bool useProcedureForCustomerPaged = false)
         {
             IDbSession session = await Task.Run(() => DbSession);
 
             IEnumerable<Customer> customers;
             int totalRecord;
 
-            if (_appConfig.UseProcedureForCustomerPaged)
+            if (useProcedureForCustomerPaged)
             {
                 DynamicParameters dynamicParameters = new DynamicParameters();
 
