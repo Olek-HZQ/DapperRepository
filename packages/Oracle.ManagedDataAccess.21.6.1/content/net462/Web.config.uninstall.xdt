@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+
+  <!-- remove existing entry -->
+  <configSections>
+      <section name="oracle.manageddataaccess.client" xdt:Transform="Remove" xdt:Locator="Match(name)" />
+  </configSections>
+
+  <!-- remove if section is empty -->
+  <configSections xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
+
+  <!-- remove existing entry -->
+  <system.data>
+    <DbProviderFactories>
+      <remove invariant="Oracle.ManagedDataAccess.Client" xdt:Transform="Remove" xdt:Locator="Match(invariant)" />
+      <add name="ODP.NET, Managed Driver" xdt:Transform="Remove" xdt:Locator="Match(name)" />      
+    </DbProviderFactories>
+  </system.data>
+
+  <!-- remove if section is empty -->
+  <system.data>
+    <DbProviderFactories xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
+  </system.data>
+  <system.data xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
+
+</configuration>

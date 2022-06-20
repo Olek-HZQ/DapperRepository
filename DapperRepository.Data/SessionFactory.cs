@@ -1,10 +1,10 @@
 ﻿using System.Data;
-using System.Data.OracleClient;
 using System.Data.SqlClient;
 using DapperRepository.Core.Configuration;
 using DapperRepository.Core.Data;
 using DapperRepository.Core.Domain;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
+using Oracle.ManagedDataAccess.Client;
 
 namespace DapperRepository.Data
 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,89 +49,59 @@ namespace DapperRepository.Data.Repositories.Mssql.Customers
             return await GetListAsync(sqlResult.Sql, sqlResult.NamedBindings);
         }
 
-        public virtual async Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize)
+        public virtual async Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize, bool useProcedureForCustomerPaged = false)
         {
-            #region TotalCount
-
             IDbSession session = await Task.Run(() => DbSession);
 
-            var totalCountQuery = new Query().FromRaw($"{TableName} WITH (NOLOCK)").WhereFalse("Deleted").AsCount();
+            IEnumerable<Customer> customers;
+            int totalRecord;
 
-            if (!string.IsNullOrEmpty(username))
+            if (useProcedureForCustomerPaged)
             {
-                totalCountQuery = totalCountQuery.WhereStarts("Username", username);
-            }
+                DynamicParameters dynamicParameters = new DynamicParameters();
 
-            if (!string.IsNullOrEmpty(email))
-            {
-                totalCountQuery = totalCountQuery.WhereStarts("Email", email);
-            }
+                dynamicParameters.Add("Username", username, DbType.String, ParameterDirection.Input);
+                dynamicParameters.Add("Email", email, DbType.String, ParameterDirection.Input);
+                dynamicParameters.Add("PageIndex", pageIndex, DbType.Int32, ParameterDirection.Input);
+                dynamicParameters.Add("PageSize", pageSize, DbType.Int32, ParameterDirection.Input);
+                dynamicParameters.Add("TotalRecords", 0, DbType.Int32, ParameterDirection.Output);
 
-            SqlResult totalCountResult = GetSqlResult(totalCountQuery);
-
-            int totalCount = await session.Connection.QueryFirstOrDefaultAsync<int>(totalCountResult.Sql, totalCountResult.NamedBindings);
-
-            #endregion
-
-            #region Paged Customers
-
-            int totalPage = totalCount <= pageSize ? 1 : totalCount > pageSize && totalCount < (pageSize * 2) ? 2 : totalCount / pageSize; // 总页数
-
-            int midPage = totalPage / 2 + 1; //中间页数，大于该页数则采用倒排优化
-
-            bool isLastPage = pageIndex == totalPage; // 是否最后一页，是最后一页则需要进行取模算出最后一页的记录数（可能小于PageSize）
-
-            int descBound = (totalCount - pageIndex * pageSize); // 重新计算limit偏移量
-
-            int lastPageSize = 0; // 计算最后一页的记录数
-
-            if (isLastPage)
-            {
-                lastPageSize = totalCount % pageSize; // 取模得到最后一页的记录数
-                descBound -= lastPageSize; // 重新计算最后一页的偏移量
+                customers = await session.Connection.QueryAsync<Customer>("[dbo].[CustomerPaged]", dynamicParameters, commandType: CommandType.StoredProcedure);
+                totalRecord = dynamicParameters.Get<int>("TotalRecords");
+                session.Dispose();
             }
             else
             {
-                descBound -= pageSize; // 正常重新计算除最后一页的偏移量
-            }
+                Query totalRecordQuery = new Query().FromRaw($"{TableName} WITH (NOLOCK)").WhereFalse("Deleted").AsCount();
+                Query customerQuery = new Query().FromRaw($"{TableName} WITH (NOLOCK)").Select("Id", "Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
 
-            bool useDescOrder = pageIndex <= midPage; // 判断是否采取倒排优化
+                if (!string.IsNullOrEmpty(username))
+                {
+                    totalRecordQuery = totalRecordQuery.WhereStarts("Username", username);
+                    customerQuery = customerQuery.WhereStarts("Username", username);
+                }
 
-            Query customerQuery = new Query(TableName).Select("Id", "Username", "Email", "Active", "CreationTime").WhereFalse("Deleted");
+                if (!string.IsNullOrEmpty(email))
+                {
+                    totalRecordQuery = totalRecordQuery.WhereStarts("Email", email);
+                    customerQuery = customerQuery.WhereStarts("Email", email);
+                }
 
-            if (!string.IsNullOrEmpty(username))
-            {
-                customerQuery = customerQuery.WhereStarts("Username", username);
-            }
+                SqlResult totalRecordResult = GetSqlResult(totalRecordQuery);
 
-            if (!string.IsNullOrEmpty(email))
-            {
-                customerQuery = customerQuery.WhereStarts("Email", email);
-            }
+                customerQuery = customerQuery.OrderByDesc("Id").Limit(pageSize).Offset(pageIndex * pageSize);
+                SqlResult customerResult = GetSqlResult(customerQuery);
 
-            customerQuery = customerQuery.Limit(isLastPage ? lastPageSize : pageSize).Offset(useDescOrder ? pageIndex * pageSize : descBound);
+                var multi = await session.Connection.QueryMultipleAsync(customerResult.Sql + ";" + totalRecordResult.Sql, customerResult.NamedBindings);
+                var result = await multi.ReadAsync<Customer>();
+                customers = result.ToList();
 
-            customerQuery = useDescOrder ? customerQuery.OrderByDesc("Id") : customerQuery.OrderBy("Id");
+                totalRecord = multi.ReadFirst<int>();
 
-            SqlResult customerResult = GetSqlResult(customerQuery);
-
-            try
-            {
-                var customers = await session.Connection.QueryAsync<Customer>(customerResult.Sql, customerResult.NamedBindings);
-
-                return new Tuple<int, IEnumerable<Customer>>(totalCount, customers);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            finally
-            {
                 session.Dispose();
             }
 
-            #endregion
+            return new Tuple<int, IEnumerable<Customer>>(totalRecord, customers);
         }
 
         public virtual async Task<int> InsertCustomerAsync(Customer customer)

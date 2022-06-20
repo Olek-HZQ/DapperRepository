@@ -14,7 +14,7 @@ namespace DapperRepository.Data.Repositories.BaseInterfaces
 
         Task<IEnumerable<Customer>> GetAllCustomersAsync();
 
-        Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize);
+        Task<Tuple<int, IEnumerable<Customer>>> GetPagedCustomers(string username, string email, int pageIndex, int pageSize, bool useProcedureForCustomerPaged = false);
 
         Task<int> InsertCustomerAsync(Customer customer);
 

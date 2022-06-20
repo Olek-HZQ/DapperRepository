@@ -26,6 +26,9 @@ namespace DapperRepository.Data
 
             var result = await session.Connection.GetAsync<T>(id, transaction, commandTimeout);
 
+            if (useTransaction)
+                session.Commit();
+
             session.Dispose();
 
             return result;
@@ -43,6 +46,9 @@ namespace DapperRepository.Data
             }
 
             var result = await session.Connection.QueryFirstOrDefaultAsync<T>(sql, param, transaction, commandTimeout);
+
+            if (useTransaction)
+                session.Commit();
 
             session.Dispose();
 
@@ -66,6 +72,9 @@ namespace DapperRepository.Data
 
             var result = await session.Connection.QueryAsync<T>(sql, param, transaction, commandTimeout, commandType);
 
+            if (useTransaction)
+                session.Commit();
+
             session.Dispose();
 
             return result;
@@ -82,7 +91,20 @@ namespace DapperRepository.Data
                 transaction = session.Transaction;
             }
 
-            int result = await session.Connection.InsertAsync(entity, transaction, commandTimeout);
+            int result = 0;
+
+            try
+            {
+                result = await session.Connection.InsertAsync(entity, transaction, commandTimeout);
+            }
+            catch
+            {
+                if (useTransaction)
+                {
+                    session.Rollback();
+                }
+                // throw;
+            }
 
             session.Dispose();
 
@@ -100,7 +122,21 @@ namespace DapperRepository.Data
                 transaction = session.Transaction;
             }
 
-            bool result = await session.Connection.UpdateAsync(entity, transaction, commandTimeout);
+            bool result = false;
+
+            try
+            {
+                result = await session.Connection.UpdateAsync(entity, transaction, commandTimeout);
+            }
+            catch
+            {
+                if (useTransaction)
+                {
+                    session.Rollback();
+                }
+
+                // throw;
+            }
 
             session.Dispose();
 
@@ -118,7 +154,21 @@ namespace DapperRepository.Data
                 transaction = session.Transaction;
             }
 
-            bool result = await session.Connection.DeleteAsync(entity, transaction, commandTimeout);
+            bool result = false;
+
+            try
+            {
+                result = await session.Connection.DeleteAsync(entity, transaction, commandTimeout);
+            }
+            catch
+            {
+                if (useTransaction)
+                {
+                    session.Rollback();
+                }
+
+                // throw;
+            }
 
             session.Dispose();
 
@@ -137,7 +187,21 @@ namespace DapperRepository.Data
                 transaction = session.Transaction;
             }
 
-            int result = await session.Connection.ExecuteAsync(sql, param, transaction, commandTimeout, commandType);
+            int result = 0;
+
+            try
+            {
+                result = await session.Connection.ExecuteAsync(sql, param, transaction, commandTimeout, commandType);
+            }
+            catch
+            {
+                if (useTransaction)
+                {
+                    session.Rollback();
+                }
+
+                // throw;
+            }
 
             session.Dispose();
 
