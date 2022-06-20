@@ -6,9 +6,7 @@ Branches:
 
 master: .Net Framework 4.5.1
 
-CoreDapperRepository: .Net Core 2.1
-
-Dev: Core 3.1
+Dev: .NET 5
 
 ## 1.	Foreword
 The framework is based on the underlying framework of the dapper.net repository and follows the SOLID design principles. At the same time, it supports multiple database instances of different types of databases (mssql, mysql, oracle ...) and multiple databases coexisting with the same type of database. Simply modify the configuration file to move it at will. Using the currently popular tools (dependency injection: autofac, cache: redis, etc.), the underlying package encapsulates the basic CURD operations.
